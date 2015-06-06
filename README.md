@@ -1,5 +1,6 @@
 # FastCode
-Fast replacements for Embarcadero's standard libs for Delphi XE7 and above.
+Fast replacements for Embarcadero's standard libs for Delphi XE7 and above.  
+Note that this is still early alpha code and needs to be tested.  
 
 # System.Generics.FastDefaults  
 Speeds up comparisons by using static class functions instead of interfaces.  
