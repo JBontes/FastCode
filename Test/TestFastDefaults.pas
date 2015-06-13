@@ -5,7 +5,7 @@ interface
 uses
   DUnitX.TestFramework,
   System.Generics.Defaults,
-  FastDefaults;//, System.Rtti;
+  FastDefaults;
 
 type
   TStr1 = string[1];
