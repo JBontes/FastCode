@@ -1,12 +1,14 @@
 # FastCode
 Fast replacements for Embarcadero's standard libs for Delphi XE7 and above.  
-Note that this is still early alpha code and needs to be tested.  
+Note that this is still early alpha code and needs further optimization in places.
+A comprehensive testsuite is available in the Test directory.  
 
 # System.Generics.FastDefaults  
 Speeds up comparisons by using static class functions instead of interfaces.  
 The functions are inline and inject only the short snippet of code need to compare the types in use.  
 
-It does this by resolving the type at compile-time using the new `GetTypeKind` compiler intrinsic in XE7.
+It does this by resolving the type at compile-time using the new `GetTypeKind` compiler intrinsic in XE7.  
+Then it inlines just the code snippet needed.  
 
 #Example
 
@@ -18,7 +20,7 @@ It does this by resolving the type at compile-time using the new `GetTypeKind` c
     begin
       I1:= 1;
       I2:= 2;
-      RFast:= System.Generics.FastDefaults.TComparer<integer>.Default.Compare(i1,i2);
+      RFast:= FastDefaults.TComparer<integer>.Default.Compare(i1,i2);
       if RFast = 0 then Readln;
     end.
 
@@ -43,6 +45,9 @@ Project43.dpr.133: if RFast = 0 then ReadLn;
 Project43.dpr.139: end.
 004365F5 E8060CFDFF       call @Halt0
 ```
+
+#CompareFast: even faster.
+If you don't need a generic comparer, you can use the `CompareFast` versions which will work much faster, because they work directly with register operands and are not forced to go via the stack.  
 
 **Default Default**
 ```
