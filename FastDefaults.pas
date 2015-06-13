@@ -100,39 +100,6 @@ type
       class property Signed: boolean read fSigned;
       class property ElementSize: NativeUInt read fElementSize;
     public
-      class function CompareFast(const Left, Right: byte): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: int8): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: word): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: int16): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: cardinal): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: integer): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: Uint64): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: Int64): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: NativeInt): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: NativeUint): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: AnsiChar): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: WideChar): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: UCS4Char): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: Single): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: Real48): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: double): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: extended): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: Comp): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: Currency): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: boolean): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: wordbool): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: longbool): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: bytebool): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: OpenString): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: AnsiString): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: UnicodeString): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: WideString): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: RawByteString): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: UTF8String): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: pointer): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: IInterface): Integer; overload; static; inline;
-      class function CompareFast(const Left, Right: TObject): Integer; overload; static; inline;
-    public
       /// <summary>
       ///   calculates L - R or the equivalent
       /// <returns>
@@ -187,7 +154,40 @@ type
       class var Default: TDefault;
   end;
 
+  function CompareFast(const Left, Right: byte): integer; overload; inline;
+  function CompareFast(const Left, Right: int8): integer; overload; inline;
+  function CompareFast(const Left, Right: word): integer; overload; inline;
+  function CompareFast(const Left, Right: int16): integer; overload; inline;
+  function CompareFast(const Left, Right: cardinal): integer; overload; inline;
+  function CompareFast(const Left, Right: integer): integer; overload; inline;
+  function CompareFast(const Left, Right: UInt64): integer; overload; inline;
+  function CompareFast(const Left, Right: Int64): integer; overload; inline;
+  function CompareFast(const Left, Right: NativeInt): integer; overload; inline;
+  function CompareFast(const Left, Right: NativeUInt): integer; overload; inline;
+  function CompareFast(const Left, Right: AnsiChar): integer; overload; inline;
+  function CompareFast(const Left, Right: WideChar): integer; overload; inline;
+  function CompareFast(const Left, Right: UCS4Char): integer; overload; inline;
+  function CompareFast(const Left, Right: single): integer; overload; inline;
+  function CompareFast(const Left, Right: Real48): integer; overload; inline;
+  function CompareFast(const Left, Right: double): integer; overload; inline;
+  function CompareFast(const Left, Right: extended): integer; overload; inline;
+  function CompareFast(const Left, Right: Comp): integer; overload; inline;
+  function CompareFast(const Left, Right: Currency): integer; overload; inline;
+  function CompareFast(const Left, Right: boolean): integer; overload; inline;
+  function CompareFast(const Left, Right: wordbool): integer; overload; inline;
+  function CompareFast(const Left, Right: longbool): integer; overload; inline;
+  function CompareFast(const Left, Right: bytebool): integer; overload; inline;
+  function CompareFast(const Left, Right: OpenString): integer; overload; inline;
+  function CompareFast(const Left, Right: AnsiString): integer; overload; inline;
+  function CompareFast(const Left, Right: UnicodeString): integer; overload; inline;
+  function CompareFast(const Left, Right: WideString): integer; overload; inline;
+  function CompareFast(const Left, Right: RawByteString): integer; overload; inline;
+  function CompareFast(const Left, Right: UTF8String): integer; overload; inline;
+  function CompareFast(const Left, Right: pointer): integer; overload; inline;
+  function CompareFast(const Left, Right: IInterface): integer; overload; inline;
+  function CompareFast(const Left, Right: TObject): integer; overload; inline;
 
+type
   TComparison<T> = function(const Left, Right: T): Integer;
 
   TEqualityComparison<T> = function(const Left, Right: T): Boolean;
@@ -1235,27 +1235,27 @@ end;
 }(**)
 
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: pointer): integer;
+function CompareFast(const Left, Right: pointer): integer;
 begin
   Result:= integer(NativeUInt(Left) > NativeUInt(Right)) - integer(NativeUInt(Left) < NativeUInt(Right));
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: UTF8String): integer;
+function CompareFast(const Left, Right: UTF8String): integer;
 begin
   Result:= CompareFast(Ansistring(Left), Ansistring(Right));
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: RawByteString): integer;
+function CompareFast(const Left, Right: RawByteString): integer;
 begin
   Result:= CompareFast(Ansistring(Left), Ansistring(Right));
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: WideString): integer;
+function CompareFast(const Left, Right: WideString): integer;
 begin
   Result:= FastDefaults.CompareStr(Left, Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: UnicodeString): integer;
+function CompareFast(const Left, Right: UnicodeString): integer;
 begin
   {$IFDEF PurePascal}
   Result:= CompareStr(Left, Right);
@@ -1267,138 +1267,137 @@ begin
   {$ENDIF}{$ENDIF}
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: AnsiString): integer;
+function CompareFast(const Left, Right: AnsiString): integer;
 begin
   Result:= CompareStr(Left, Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: OpenString): integer;
+function CompareFast(const Left, Right: OpenString): integer;
 begin
   Result:= CompareStr(Left, Right)
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: bytebool): integer;
+function CompareFast(const Left, Right: bytebool): integer;
 begin
   Result:= byte(byte(Left) <> 0) - byte(byte(Right) <> 0);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: longbool): integer;
+function CompareFast(const Left, Right: longbool): integer;
 begin
   Result:= byte(integer(Left) <> 0) - byte(integer(Right) <> 0);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: wordbool): integer;
+function CompareFast(const Left, Right: wordbool): integer;
 begin
   Result:= byte(integer(Left) <> 0) - byte(integer(Right) <> 0);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: boolean): integer;
+function CompareFast(const Left, Right: boolean): integer;
 begin
   Result:= byte(byte(Left) <> 0) - byte(byte(Right) <> 0);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: Currency): integer;
+function CompareFast(const Left, Right: Currency): integer;
 begin
   Result:= byte(Left > Right) - byte(Left < Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: Comp): integer;
+function CompareFast(const Left, Right: Comp): integer;
 begin
   Result:= byte(Left > Right) - byte(Left < Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: extended): integer;
+function CompareFast(const Left, Right: extended): integer;
 begin
   Result:= byte(Left > Right) - byte(Left < Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: double): integer;
+function CompareFast(const Left, Right: double): integer;
 begin
   Result:= byte(Left > Right) - byte(Left < Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: Real48): integer;
+function CompareFast(const Left, Right: Real48): integer;
 begin
   Result:= byte(Left > Right) - byte(Left < Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: single): integer;
+function CompareFast(const Left, Right: single): integer;
 begin
   Result:= byte(Left > Right) - byte(Left < Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: UCS4Char): integer;
+function CompareFast(const Left, Right: UCS4Char): integer;
 begin
   Result:= CompareFast(Cardinal(Left), Cardinal(Right));
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: WideChar): integer;
+function CompareFast(const Left, Right: WideChar): integer;
 begin
   Result:= CompareFast(Word(Left), Word(Right));
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: AnsiChar): integer;
+function CompareFast(const Left, Right: AnsiChar): integer;
 begin
   Result:= CompareFast(Byte(Left), Byte(Right));
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: NativeUInt): integer;
+function CompareFast(const Left, Right: NativeUInt): integer;
 begin
   Result:= byte(Left > Right) - byte(Left < Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: NativeInt): integer;
+function CompareFast(const Left, Right: NativeInt): integer;
 begin
   Result:= byte(Left > Right) - byte(Left < Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: int64): integer;
+function CompareFast(const Left, Right: int64): integer;
 begin
   Result:= byte(Left > Right) - byte(Left < Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: uint64): integer;
+function CompareFast(const Left, Right: uint64): integer;
 begin
   Result:= byte(Left > Right) - byte(Left < Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: integer): integer;
+function CompareFast(const Left, Right: integer): integer;
 begin
   Result:= Left - Right;
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: cardinal): integer;
+function CompareFast(const Left, Right: cardinal): integer;
 begin
   Result:= byte(Left > Right) - byte(Left < Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: int16): integer;
+function CompareFast(const Left, Right: int16): integer;
 begin
   Result:= Integer(Left) - Integer(Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: word): integer;
+function CompareFast(const Left, Right: word): integer;
 begin
   Result:= Integer(Left) - Integer(Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: int8): integer;
+function CompareFast(const Left, Right: int8): integer;
 begin
   Result:= Integer(Left) - Integer(Right);
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: byte): integer;
+function CompareFast(const Left, Right: byte): integer;
 begin
   Result:= Integer(Left) - Integer(Right);
 end;
 
-
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: TObject): integer;
+function CompareFast(const Left, Right: TObject): integer;
 begin
   Result:= CompareFast(NativeUInt(Left), NativeUInt(Right));
 end;
 
-class function TComparer<T>.TDefault.CompareFast(const Left, Right: IInterface): integer;
+function CompareFast(const Left, Right: IInterface): integer;
 begin
   Result:= CompareFast(NativeUInt(Left), NativeUInt(Right));
 end;
