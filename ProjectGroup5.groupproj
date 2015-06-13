@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{1FFF8B7E-9406-4C14-A62C-2A609A7294AC}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Test\TestCases.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="C:\Users\Johan\Documents\Embarcadero\Studio\Projects\Project44.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="TestCases">
+        <MSBuild Projects="Test\TestCases.dproj"/>
+    </Target>
+    <Target Name="TestCases:Clean">
+        <MSBuild Projects="Test\TestCases.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestCases:Make">
+        <MSBuild Projects="Test\TestCases.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Project44">
+        <MSBuild Projects="C:\Users\Johan\Documents\Embarcadero\Studio\Projects\Project44.dproj"/>
+    </Target>
+    <Target Name="Project44:Clean">
+        <MSBuild Projects="C:\Users\Johan\Documents\Embarcadero\Studio\Projects\Project44.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Project44:Make">
+        <MSBuild Projects="C:\Users\Johan\Documents\Embarcadero\Studio\Projects\Project44.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="TestCases;Project44"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="TestCases:Clean;Project44:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="TestCases:Make;Project44:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
