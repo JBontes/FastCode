@@ -11,7 +11,9 @@ uses
   DUnitX.Loggers.Console,
   DUnitX.Loggers.Xml.NUnit,
   DUnitX.TestFramework,
-  TestFastDefaults;
+  TestFastDefaults,
+  QuickerSort in '..\QuickerSort.pas',
+  TestQuickerSort in 'TestQuickerSort.pas';
 
 // in 'TestFastDefaults.pas';
 var

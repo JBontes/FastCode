@@ -30,6 +30,10 @@ uses
 //{$define PurePascal}
 
 type
+  TComparison<T> = function(const Left, Right: T): integer;
+
+  TEqualityComparison<T> = function(const Left, Right: T): boolean;
+  THasher<T> = function(const Value: T): integer;
 
   /// <summary>
   /// Usage: Equal:= TComparer<integer>.TDefault.Equals(int1, int2);
@@ -40,9 +44,8 @@ type
   ///  All comparisons will be put inline, these will be very short code snippets
   ///  or calls to optimized routines.
   /// </summary>
-  TComparer<T> = record
-  strict private
-  type
+  IComparer<T> = class
+  strict private type
     TBuiltinType = (
       btByte, btint8, btword, btint16, btcardinal, btinteger, btUint64, btInt64,
       btNativeInt, btNativeUint, btAnsiChar, btWideChar, btUCS4Char,
@@ -51,53 +54,49 @@ type
       btStr1, btStr2, btStr3, btOpenString,
       btpointer, btInterface, btObject, btVariant, btOleVariant,
       btMethod);
-
-  type
-{$IFNDEF NEXTGEN}
-    TPS1 = string[1];
-    TPS2 = string[2];
-    TPS3 = string[3];
-{$ELSE NEXTGEN}
-    ShortString = type string;
-    TPS1 = string;
-    TPS2 = string;
-    TPS3 = string;
-{$ENDIF !NEXTGEN}
-
-    TCast = record
-      case TBuiltinType of
-        btByte: (u8: byte);
-        btint8: (i8: int8);
-        btword: (u16: word);
-        btint16: (i16: int16);
-        btcardinal: (u32: cardinal);
-        btinteger: (i32: integer);
-        btUint64: (u64: UInt64);
-        btInt64: (i64: Int64);
-        btNativeInt: (ni: NativeInt);
-        btNativeUint: (nu: NativeUInt);
-        btAnsiChar: (ac: byte);
-        btWideChar: (wc: word);
-        btUCS4Char: (uc: cardinal);
-        btSingle: (f4: single);
-        btReal48: (f6: Real48);
-        btdouble: (f8: double);
-        btextended: (f10: extended);
-        btComp: (c: Int64);
-        btCurrency: (cu: Int64);
-        btboolean: (b: boolean);
-        btwordbool: (bw: wordbool);
-        btlongbool: (bl: longbool);
-        btbytebool: (bb: bytebool);
-        btStr1: (ps1: TPS1);
-        btStr2: (ps2: TPS1);
-        btStr3: (ps3: TPS1);
-        btOpenString: (ps: ShortString);
-        btpointer: (p: pointer);
-        btMethod: (m: TMethod);
-    end;
-  public type
-    TDefault = record
+    type
+  {$IFNDEF NEXTGEN}
+      TPS1 = string[1];
+      TPS2 = string[2];
+      TPS3 = string[3];
+  {$ELSE NEXTGEN}
+      ShortString = type string;
+      TPS1 = string;
+      TPS2 = string;
+      TPS3 = string;
+  {$ENDIF !NEXTGEN}
+      TCast = record
+        case TBuiltinType of
+          btByte: (u8: byte);
+          btint8: (i8: int8);
+          btword: (u16: word);
+          btint16: (i16: int16);
+          btcardinal: (u32: cardinal);
+          btinteger: (i32: integer);
+          btUint64: (u64: UInt64);
+          btInt64: (i64: Int64);
+          btNativeInt: (ni: NativeInt);
+          btNativeUint: (nu: NativeUInt);
+          btAnsiChar: (ac: byte);
+          btWideChar: (wc: word);
+          btUCS4Char: (uc: cardinal);
+          btSingle: (f4: single);
+          btReal48: (f6: Real48);
+          btdouble: (f8: double);
+          btextended: (f10: extended);
+          btComp: (c: Int64);
+          btCurrency: (cu: Int64);
+          btboolean: (b: boolean);
+          btwordbool: (bw: wordbool);
+          btlongbool: (bl: longbool);
+          btbytebool: (bb: bytebool);
+          btStr1: (ps1: TPS1);
+          btStr2: (ps2: TPS1);
+          btStr3: (ps3: TPS1);
+          btOpenString: (ps: ShortString);
+          btpointer: (p: pointer);
+          btMethod: (m: TMethod);
+      end;
     strict private
       class var fSigned: boolean;
       class var fElementSize: NativeUInt;
@@ -153,8 +152,23 @@ type
       /// </summary>
       class function GetHashCode(const Value: T; Seed: integer = 0): integer; static; inline;
     end;
+
+
+  TComparer<T> = class
+  private
+    FComparer: TComparer<T>;
   public
-    class var Default: TDefault;
+    class var Default: IComparer<T>;
+    class function Construct(const Comparison: TComparison<T>): TComparer<T>;
+    function Compare(const Left, Right: T): Integer; virtual; abstract;
+  end;
+
+  TDelegatedComparer<T> = class(TComparer<T>)
+  private
+    FCompare: TComparison<T>;
+  public
+    constructor Create(const ACompare: TComparison<T>);
+    function Compare(const Left, Right: T): Integer; override;
   end;
 
 function CompareFast(const Left, Right: byte): integer; overload; inline;
@@ -190,11 +204,7 @@ function CompareFast(const Left, Right: pointer): integer; overload; inline;
 function CompareFast(const Left, Right: IInterface): integer; overload; inline;
 function CompareFast(const Left, Right: TObject): integer; overload; inline;
 
-type
-  TComparison<T> = function(const Left, Right: T): integer;
 
-  TEqualityComparison<T> = function(const Left, Right: T): boolean;
-  THasher<T> = function(const Value: T): integer;
 
 function Compare_Variant(Left, Right: pointer): integer;
 function BinaryCompare(Left, Right: pointer; Size: integer): integer;
@@ -466,6 +476,7 @@ asm
   jnz @done
   mov  EBX,[EAX+ECX+4]
   xor  EBX,[EDX+ECX+4]
+  jnz @done
   add  ECX,8
   js  @loop8
 @remainder:
@@ -608,7 +619,7 @@ end;
 {$DEFINE FusedParameters}
 {$ENDIF}{$ENDIF}{$ENDIF}
 
-class function TComparer<T>.TDefault.Compare(const Left, Right: T): integer;
+class function IComparer<T>.Compare(const Left, Right: T): integer;
 var
   l: TCast absolute Left;
   r: TCast absolute Right;
@@ -736,7 +747,7 @@ begin
   end;
 end;
 
-class function TComparer<T>.TDefault.TestCompareFast(const Left, Right: T): integer;
+class function IComparer<T>.TestCompareFast(const Left, Right: T): integer;
 var
   l: TCast absolute Left;
   r: TCast absolute Right;
@@ -788,7 +799,7 @@ begin
 end;
 
 {TODO -oJohan -cRewrite : Write special case to string comparison etc.}
-class function TComparer<T>.TDefault.Equals(const Left, Right: T): boolean;
+class function IComparer<T>.Equals(const Left, Right: T): boolean;
 var
   l: TCast absolute Left;
   r: TCast absolute Right;
@@ -822,7 +833,7 @@ begin
   end;
 end;
 
-class function TComparer<T>.TDefault.GetHashCode(const Value: T; Seed: integer = 0): integer;
+class function IComparer<T>.GetHashCode(const Value: T; Seed: integer = 0): integer;
 var
   V: TCast absolute Value;
   VarStr: string;
@@ -845,7 +856,7 @@ begin
     tkWString: Result:= MurmurHash3(WideString(V.p)[1], Length(WideString(V.p)) * SizeOf(WideChar), Seed);
     tkVariant: try
       VarStr:= PVariant(V.p)^;
-      Result:= TComparer<string>.TDefault.GetHashCode(VarStr, Seed);
+      Result:= TComparer<string>.Default.GetHashCode(VarStr, Seed);
     except
       Result:= MurmurHash3(V.p^, SizeOf(Variant), Seed);
     end;
@@ -1311,7 +1322,7 @@ end;
 {$ENDREGION}
 {$ENDIF}
 
-class constructor TComparer<T>.TDefault.Init;
+class constructor IComparer<T>.Init;
 begin
   fSigned:= false;
   case GetTypeKind(T) of
@@ -1527,6 +1538,26 @@ end;
 function CompareFast(const Left, Right: IInterface): integer;
 begin
   Result:= CompareFast(NativeUInt(Left), NativeUInt(Right));
+end;
+
+{ TComparer<T> }
+
+class function TComparer<T>.Construct(const Comparison: TComparison<T>): TComparer<T>;
+begin
+  Result:= TDelegatedComparer<T>.Create(Comparison);
+end;
+
+{ TDelegatedComparer<T> }
+
+constructor TDelegatedComparer<T>.Create(const ACompare: TComparison<T>);
+begin
+  inherited Create;
+  FCompare:= ACompare;
+end;
+
+function TDelegatedComparer<T>.Compare(const Left, Right: T): Integer;
+begin
+  Result:= FCompare(Left, Right);
 end;
 
 end.
