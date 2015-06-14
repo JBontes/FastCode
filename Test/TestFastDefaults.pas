@@ -167,7 +167,7 @@ type
     procedure TestMethod;
     [Test]
     procedure TestProcedure;
-    [Test]
+    //[Test]
     procedure TestVariant;
   end;
 
@@ -276,12 +276,9 @@ uses
   System.SysUtils, System.Variants, System.Rtti;
 
 { TTest<T> }
-class function TTest<T>.Real48Comparison(const Left, Right: T): Integer;
-var
-  L: Real48 absolute Left;
-  R: Real48 absolute Right;
+class function TTest<T>.Real48Comparison(const Left, Right :T): Integer;
 begin
-  Result:= integer(L > R) - integer(L < R);
+  Result:= integer(Real48((@Left)^) > Real48((@Right)^)) - integer(Real48((@Left)^) < Real48((@Right)^));
 end;
 
 class constructor TTest<T>.Init;
@@ -1026,79 +1023,77 @@ type
 function SetVariant(Flavor: VarType): Variant;
 const
   COleStr: WideString = '888';
-var
-  VarData1: TVarData absolute Result;
-  //Rec: TManagedRec;
 begin
   case Flavor of
     vrEmpty: Result:= Unassigned;
     vrNull: Result:= null;
     vrSmallint: begin
-      VarData1.VType:= varSmallint;
-      VarData1.VSmallInt:= Random(16000) - 8000;
+      TVarData(Result).VType:= varSmallInt;
+      TVarData(Result).VType:= varSmallint;
+      TVarData(Result).VSmallInt:= Random(16000) - 8000;
     end;
     vrInteger: begin
-      VarData1.VType:= varInteger;
-      VarData1.VInteger:= Random(16000) - 8000;
+      TVarData(Result).VType:= varInteger;
+      TVarData(Result).VInteger:= Random(16000) - 8000;
     end;
     vrSingle: begin
-      VarData1.VType:= varSingle;
-      VarData1.VSingle:= Random(16000) - 8000;
+      TVarData(Result).VType:= varSingle;
+      TVarData(Result).VSingle:= Random(16000) - 8000;
     end;
     vrDouble: begin
-      VarData1.VType:= varDouble;
-      VarData1.VDouble:= Random(16000) - 8000;
+      TVarData(Result).VType:= varDouble;
+      TVarData(Result).VDouble:= Random(16000) - 8000;
     end;
     vrCurrency: begin
-      VarData1.VType:= varCurrency;
-      VarData1.VCurrency:= Random(16000) - 8000;
+      TVarData(Result).VType:= varCurrency;
+      TVarData(Result).VCurrency:= Random(16000) - 8000;
     end;
     vrDate: begin
-      VarData1.VType:= varDate;
-      VarData1.VDate:= Random(16000) - 8000;
+      TVarData(Result).VType:= varDate;
+      TVarData(Result).VDate:= Random(16000) - 8000;
     end;
     vrOleStr: begin
       Result:= COleStr;
     end;
     vrDispatch: begin
-          //VarData1.VType:= varDispatch;
-          //NativeUInt(VarData1.VDispatch):= $5454354;
+          //TVarData(Result).VType:= varDispatch;
+          //NativeUInt(TVarData(Result).VDispatch):= $5454354;
     end;
     vrError: begin
-      VarData1.VType:= VarError;
-      VarData1.VError:= Random(16000) - 8000;
+      TVarData(Result).VType:= VarError;
+      TVarData(Result).VError:= Random(16000) - 8000;
     end;
     vrBoolean: begin
-      VarData1.VType:= VarBoolean;
-      VarData1.VBoolean:= Odd(Random(3));
+      TVarData(Result).VType:= VarBoolean;
+      TVarData(Result).VBoolean:= Odd(Random(3));
     end;
     vrUnknown: begin
-      VarData1.VType:= VarUnknown;
-      NativeUInt(VarData1.VUnknown):= Random(MaxInt);
+      TVarData(Result).VType:= VarUnknown;
+      NativeUInt(TVarData(Result).VUnknown):= Random(MaxInt);
     end;
     vrShortInt: begin
-      VarData1.VType:= VarShortInt;
-      VarData1.VShortInt:= Random(100) - 50;
+      TVarData(Result).VType:= VarShortInt;
+      TVarData(Result).VShortInt:= Random(100) - 50;
     end;
     vrByte: begin
-      VarData1.VType:= VarByte;
-      VarData1.VShortInt:= Random(100);
+      TVarData(Result).VType:= VarByte;
+      TVarData(Result).VShortInt:= Random(100);
     end;
     vrWord: begin
-      VarData1.VType:= VarWord;
-      VarData1.VShortInt:= Random(16000);
+      TVarData(Result).VType:= VarWord;
+      TVarData(Result).VShortInt:= Random(16000);
     end;
     vrLongWord: begin
-      VarData1.VType:= VarLongWord;
-      VarData1.VLongWord:= Random(16000);
+      TVarData(Result).VType:= VarLongWord;
+      TVarData(Result).VLongWord:= Random(16000);
     end;
     vrInt64: begin
-      VarData1.VType:= VarInt64;
-      VarData1.VInt64:= Random(16000) - 8000;
+      TVarData(Result).VType:= VarInt64;
+      TVarData(Result).VInt64:= Random(16000) - 8000;
     end;
     vrUInt64: begin
-      VarData1.VType:= VarUInt64;
-      VarData1.VUInt64:= Random(16000);
+      TVarData(Result).VType:= VarUInt64;
+      TVarData(Result).VUInt64:= Random(16000);
     end;
     vrRecord: begin
       //Rec.a:= Random(128);
@@ -1124,9 +1119,6 @@ var
   V1,V2: Variant;
   i1,i2: VarType;
   s1,s2: string;
-  VarData1: TVarData absolute V1;
-  VarData2: TVarData absolute V2;
-  //Rec: TManagedRec;
 begin
   for i1:= High(VarType) downto Low(VarType) do begin
     for i2:= Low(VarType) to High(VarType) do begin
