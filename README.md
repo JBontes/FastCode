@@ -1,13 +1,13 @@
 # FastCode
 Fast replacements for Embarcadero's standard libs for Delphi XE7 and above.  
-Note that this is still early alpha code and needs further optimization in places.
+Note that this is still early alpha code and needs further optimization in places.  
 A comprehensive testsuite is available in the Test directory.  
 
 # FastDefaults  
 Speeds up comparisons by using static class functions instead of interfaces.  
 The functions are inline and inject only the short snippet of code need to compare the types in use.  
 
-It does this by resolving the type at compile-time using the new `GetTypeKind` compiler intrinsic in XE7.  
+It does this by resolving the type at compile-time using the new `GetTypeKind` and `TypeInfo` compiler intrinsics in XE7.  
 Then it inlines just the code snippet needed.  
 It also uses much more optimized code than the RTL; this is especially true for Win64 which has not been blessed by the 2007 FastCode project.  
 
@@ -33,7 +33,8 @@ Adds class helper for `TArray<T>` that uses a more optimized version of quicksor
 
 
 **CompareFast: even faster.**
-If you don't need a generic comparer, you can use the `CompareFast` versions which will work much faster, because they work directly with register operands and are not forced to go via the stack.  
+If you don't need a generic comparer, you can use the `CompareFast` versions which will work much faster, because they work directly with register operands and are not forced to go via the stack.    
+Even for simple types like cardinals the CompareFast code is likely to be faster than a naive implementation.  
 
 ```
     var
@@ -58,16 +59,6 @@ Project44.dpr.15: Result:= CompareFast(i1,i2);
 ...
 ```
 
-**Default Default**
-```
-var
-  I1, I2: integer;
-  RSlow: integer;
-begin
-  I1:= 1;
-  I2:= 2;
-  RSlow:= System.Generics.Defaults.TComparer<integer>.Default.Compare(i1,i2);
-  if RSlow = 0 then Readln;
-end.
+
 ```
 
