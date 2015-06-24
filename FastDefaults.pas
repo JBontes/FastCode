@@ -30,22 +30,30 @@ uses
 //{$define PurePascal}
 
 type
+
   TComparison<T> = function(const Left, Right: T): integer;
+
+  TRec<T> = record
+  private
+    class var FCompare: TComparison<T>;
+    FData: T;
+    class constructor Init;
+  public
+    class operator Explicit(const a: T): TRec<T>; static; inline;
+    class operator Implicit(const a: T): TRec<T>; static; inline;
+    class operator Implicit(const a: TRec<T>): T; static; inline;
+    class operator GreaterThan(const L,R: TRec<T>): boolean; static; inline;
+    class operator Equal(const L,R: TRec<T>): boolean; static; inline;
+    class operator LessThan(const L,R: TRec<T>): boolean; static; inline;
+    class operator NotEqual(const L, R: TRec<T>): boolean; static; inline;
+  end;
 
   TEqualityComparison<T> = function(const Left, Right: T): boolean;
   THasher<T> = function(const Value: T): integer;
 
-  /// <summary>
-  /// Usage: Equal:= TComparer<integer>.TDefault.Equals(int1, int2);
-  ///        LessThan:= TComparer<integer>.TDefault.CompareFast(int1, int2) < 0;
-  ///        GreaterThanOrEqual:= TComparer<integer>.TDefault.CompareFast(int1, int2) >= 0;
-  ///        etc..
-  ///  Obviously T can be any type whatsoever.
-  ///  All comparisons will be put inline, these will be very short code snippets
-  ///  or calls to optimized routines.
-  /// </summary>
-  IComparer<T> = class
-  strict private type
+  PCast = ^TCast;
+  TCast = record
+    strict private type
     TBuiltinType = (
       btByte, btint8, btword, btint16, btcardinal, btinteger, btUint64, btInt64,
       btNativeInt, btNativeUint, btAnsiChar, btWideChar, btUCS4Char,
@@ -53,8 +61,8 @@ type
       btboolean, btwordbool, btlongbool, btbytebool,
       btStr1, btStr2, btStr3, btOpenString,
       btpointer, btInterface, btObject, btVariant, btOleVariant,
-      btMethod);
-    type
+      btMethod, btClass, btByteArray);
+      strict private type
   {$IFNDEF NEXTGEN}
       TPS1 = string[1];
       TPS2 = string[2];
@@ -65,7 +73,7 @@ type
       TPS2 = string;
       TPS3 = string;
   {$ENDIF !NEXTGEN}
-      TCast = record
+    public
         case TBuiltinType of
           btByte: (u8: byte);
           btint8: (i8: int8);
@@ -96,7 +104,20 @@ type
           btOpenString: (ps: ShortString);
           btpointer: (p: pointer);
           btMethod: (m: TMethod);
-      end;
+          btClass: (o: TObject);
+          btByteArray: (arr: array[0..0] of byte);
+        end;
+
+  /// <summary>
+  /// Usage: Equal:= TComparer<integer>.TDefault.Equals(int1, int2);
+  ///        LessThan:= TComparer<integer>.TDefault.CompareFast(int1, int2) < 0;
+  ///        GreaterThanOrEqual:= TComparer<integer>.TDefault.CompareFast(int1, int2) >= 0;
+  ///        etc..
+  ///  Obviously T can be any type whatsoever.
+  ///  All comparisons will be put inline, these will be very short code snippets
+  ///  or calls to optimized routines.
+  /// </summary>
+  IComparer<T> = class
     strict private
       class var fSigned: boolean;
       class var fElementSize: NativeUInt;
@@ -118,7 +139,10 @@ type
       ///   This is to remain compatible with the Embarcadero implementation
       /// </remarks>
       /// </summary>
-      class function Compare(const Left, Right: T): integer; overload; static; inline;
+      class function Compare(const Left, Right: T): integer; overload; static; //inline;
+//      class function Compare(const Left, Right: byte): integer; overload; //inline;
+//      class function Compare(const Left, Right: int8): integer; overload; //inline;
+
       /// <summary>
       ///   calculates L = R or the equivalent
       /// <returns>
@@ -162,6 +186,7 @@ type
     class function Construct(const Comparison: TComparison<T>): TComparer<T>;
     function Compare(const Left, Right: T): Integer; virtual; abstract;
   end;
+
 
   TDelegatedComparer<T> = class(TComparer<T>)
   private
@@ -228,7 +253,21 @@ function BobJenkinsHash(const HashData; Len, Seed: integer): integer; inline;
 function CompareStr(const S1, S2: WideString): integer; overload;
 function CompareStr(const S1, S2: string): integer; overload;
 function SameStr(const S1, S2: string): boolean; overload;
+function SameStr(const S1, S2: WideString): boolean; overload;
 function BinaryEquals(Left, Right: pointer; Size: integer): boolean;
+
+type
+  PInt8 = ^Int8;
+  PInt16 = ^Int16;
+  TPS1 = string[1];
+  PStr1 = ^TPS1;
+  TPS2 = string[2];
+  PStr2 = ^TPS2;
+  TPS3 = string[3];
+  PStr3 = ^TPS3;
+  TPSn = shortstring;
+  PStrn = ^TPSn;
+  PReal48 = ^Real48;
 
 implementation
 
@@ -236,10 +275,14 @@ uses
 {$IFNDEF NEXTGEN}
   System.AnsiStrings,
 {$ENDIF}
-{$IF CompilerVersion < 28}
+{$IF CompilerVersion < 28}  //Below XE7
   System.RTTi,
 {$ENDIF}
-  System.Math, System.Generics.Collections, System.Variants, System.Generics.Defaults, System.TypInfo;
+  System.Math, System.Generics.Collections, System.Variants, System.Generics.Defaults, System.TypInfo
+{$IFDEF  MSWindows}
+    , WinApi.Windows
+{$ENDIF}
+  ;
 
 function Compare_Variant(Left, Right: pointer): integer;
 var
@@ -297,10 +340,10 @@ asm
   //preserve:RBX, RBP, RDI, RSI, R12-R15
   //bswap ECX
   //bswap EDX
-  cmp    ecx,edx
-  seta   al
-  movzx  eax,al
-  sbb    eax,0
+  cmp    ECX,EDX
+  sbb    EAX,EAX
+  cmp    EDX,ECX
+  adc    EAX,0
 end;
 {$ENDIF}
 {$IFDEF CPUX86}
@@ -419,13 +462,22 @@ end;
 {$ENDIF}
 {$ENDIF !PurePascal}
 
+//Cannot be used for comparisons shorter than 4 bytes.
 function BinaryEquals(Left, Right: pointer; Size: integer): boolean;
 {$IFDEF purepascal} //pure pascal
 var
   i: integer;
+  a,b: integer;
 begin
-  for i:= 0 to Size-1 do begin
-    Result:= (PByte(Left)[i] = PByte(Right)[i]);
+  a:= Size shl 2;
+  for i:= 0 to a-1 do begin
+    Result:= (PInteger(Left)[i] = PInteger(Right)[i]);
+    if not(Result) then Exit;
+  end;
+  a:= Size and $3;
+  b:= Size and -4;
+  for i:= 0 to a-1 do begin
+    Result:= (PByte(Left)[b+i] = PByte(Right)[b+i]);
     if not(Result) then Exit;
   end;
 end;
@@ -435,27 +487,34 @@ end;
 //RDC: Right
 //R8: size
 asm
+  .NOFRAME
   neg  R8
-  mov  R9,R8
-  sar  R8,3   //Divide by 8
-  jz @remainder
-  add  RCX, R8
-  add  RDX, R8
+  //jz @equal
+  sub  RCX, R8
+  sub  RDX, R8
 @loop8:
-  mov  RAX,[RCX+R8]
-  xor  RAX,[RDX+R8]
-  jnz @done
   add  R8,8
-  js  @loop8
-@remainder:
-  or   R9,-8
-@loop1:
-  add  R9, 1
-  jg @done
-  mov  AL,[RCX+R9-1]
-  xor  AL,[RDX+R9-1]
-  jz @loop1
-@done:
+  jns   @check4
+  mov  RAX,[RCX+R8-8]
+  xor  RAX,[RDX+R8-8]
+  jz @loop8
+@different:
+  xor eax,eax
+  ret
+@check4:
+  sub r8,4
+  jg @smaller
+  mov  eax,[rcx+r8-4]
+  xor  eax,[rdx+r8-4]
+  jnz @different
+@smaller:
+  and r8,-4
+  jz @equal
+  mov  eax,[RCX+R8]
+  xor  eax,[RDX+R8]
+  jnz @different
+@equal:
+  mov eax,1
 end;
 {$ELSE !CPUX64}
 //EAX: Left
@@ -463,33 +522,37 @@ end;
 //ECX: size
 asm
   push EBX
-  push ESI
   neg  ECX
-  mov  ESI,ECX
-  sar  ECX,3   //Divide by 8
-  jz @remainder
-  add  EAX, ECX
-  add  EDX, ECX
+  //jz @equal
+  sub  EAX, ECX
+  sub  EDX, ECX
 @loop8:
+  add  ECX,8
+  jns   @check4
+  mov  EBX,[EAX+ECX-8]
+  xor  EBX,[EDX+ECX-8]
+  jnz @different
+  mov  EBX,[EAX+ECX-8+4]
+  xor  EBX,[EDX+ECX-8+4]
+  jz @loop8
+@different:
+  xor eax,eax
+  pop  EBX
+  ret
+@check4:
+  sub  ECX,4
+  jg @smaller
+  mov  EBX,[EAX+ECX-4]
+  xor  EBX,[EDX+ECX-4]
+  jnz @different
+@smaller:
+  and  ECX,-4
+  jz @equal
   mov  EBX,[EAX+ECX]
   xor  EBX,[EDX+ECX]
-  jnz @done
-  mov  EBX,[EAX+ECX+4]
-  xor  EBX,[EDX+ECX+4]
-  jnz @done
-  add  ECX,8
-  js  @loop8
-@remainder:
-  or   ESI,-8
-@loop1:
-  add  ESI, 1
-  jg @done
-  mov  BL, byte ptr [EAX+ESI-1]
-  xor  BL, byte ptr [EDX+ESI-1]
-  jz @loop1
-@done:
-  xchg EAX,EBX
-  pop  ESI
+  jnz @different
+@equal:
+  mov  AL,1
   pop  EBX
 end;
 {$ENDIF}
@@ -620,10 +683,10 @@ end;
 {$ENDIF}{$ENDIF}{$ENDIF}
 
 class function IComparer<T>.Compare(const Left, Right: T): integer;
-var
-  l: TCast absolute Left;
-  r: TCast absolute Right;
-  //X: TTypeKind;
+//var
+//  l: TCast absolute Left;
+//  r: TCast absolute Right;
+//  //X: TTypeKind;
 begin
   //X:= GetTypeKind(T);
 //    tkUnknown  OK      //Have we covered all types?
@@ -652,83 +715,157 @@ begin
   case GetTypeKind(T) of
     //tkWString: Result:= (CompareStr(WideString(l.p), WideString(r.p)));
     tkWString: Result:= (CompareStr(WideString((@Left)^), WideString((@Right)^)));
-    tkUString: Result:= (FastDefaults.CompareStr(UnicodeString(l.p), UnicodeString(r.p)));
-    tkLString: Result:= (CompareStr(AnsiString(l.p), AnsiString(r.p)));
-    tkDynArray: Result:= (Compare_DynArray(l.p, r.p, ElementSize));
-    tkVariant: Result:= (Compare_Variant(@l, @r));
-    tkClass, tkClassRef, tkPointer, tkInterface, tkProcedure: Result:= (integer(l.nu > r.nu) - integer(l.nu < r.nu));
-    tkMethod: Result:= integer((((NativeUInt(l.m.Data) > NativeUInt(r.m.Data))) or
-      (((NativeUInt(l.m.Data) = NativeUInt(r.m.Data)) and (NativeUInt(l.m.Code) > NativeUInt(r.m.Code)))))) -
-      integer(((NativeInt(l.m.Data) < NativeInt(r.m.Data)) or ((NativeInt(l.m.Data) = NativeInt(r.m.Data)) and
-      (NativeInt(l.m.Code) < NativeInt(r.m.Code)))));
+    tkUString: Result:= (FastDefaults.CompareStr(PUnicodeString(@Left)^, PUnicodeString(@Right)^));
+    tkLString: Result:= (CompareStr(PAnsiString(@Left)^, PAnsiString(@Right)^));
+    tkDynArray: Result:= (Compare_DynArray(ppointer(@Left)^, ppointer(@Right)^, ElementSize));
+    tkVariant: Result:= (Compare_Variant(@left, @right));
+    tkClass, tkClassRef, tkPointer, tkInterface, tkProcedure: Result:= (integer(PNativeUint(@Left)^ > PNativeUint(@Right)^) - integer(PNativeUInt(@Left)^ < PNativeUInt(@Right)^));
+    tkMethod: Result:= integer((((NativeUInt(PMethod(@left)^.Data) > NativeUInt(PMethod(@Right)^.Data))) or
+      (((NativeUInt(PMethod(@Left)^.Data) = NativeUInt(PMethod(@Right)^.Data)) and (NativeUInt(PMethod(@Left)^.Code) > NativeUInt(PMethod(@Right)^.Code)))))) -
+      integer(((NativeInt(PMethod(@Left)^.Data) < NativeInt(PMethod(@Right)^.Data)) or ((NativeInt(PMethod(@Left)^.Data) = NativeInt(PMethod(@Right)^.Data)) and
+      (NativeInt(PMethod(@Left)^.Code) < NativeInt(PMethod(@Right)^.Code)))));
     else
   //Complex cases...
     case SizeOf(T) of
       0: Result:= (0);
       1: begin
         //Keep R in one case otherwise linker will eliminate parameter Right.
-{$IFDEF FusedParameters}
-        if (GetTypeKind(T) = tkInteger) and Signed then Result:= (l.i8) - int8(l.i32 shr 8)
-{$ELSE}
-        if (GetTypeKind(T) = tkInteger) and Signed then Result:= (l.i8) - (r.i8)
-{$ENDIF}
-        //Prevent unaligned byte read.
-        else Result:= (l.u8) - (r.u8); //L is stored at [esp], R is stored at [esp+1]
+        //{$IFDEF FusedParameters}
+        // if (GetTypeKind(T) = tkInteger) and Signed then Result:= (l.i8) - int8(l.i32 shr 8)
+        if TypeInfo(T) = TypeInfo(ShortInt) then Result:= (PInt8(@Left)^) - (PInt8(@Right)^)
+        else if TypeInfo(T) = TypeInfo(byte) then Result:= (PByte(@Left)^) - (PByte(@Right)^)
+        else if GetTypeKind(T) <> tkInteger then Result:= (PByte(@Left)^) - (PByte(@Right)^)
+        {$IFDEF win32}
+        else if Signed then Result:= (PInt8(@Left)^) - int8(PInteger(@Left)^ shr 8)
+        {$ELSE}
+        else if Signed then Result:= (PInt8(@Left)^) - (PInt8(@Right)^)
+        {$ENDIF}
+        else Result:= (PByte(@Left)^) - (PByte(@Right)^)
       end;
       2: begin
         case GetTypeKind(T) of
-          tkInteger: if Signed then Result:= (l.i16 - r.i16)
-          //Keep R in one case otherwise linker will eliminate parameter Right.
-          //L is stored at [esp], R is stored at [esp+2]
-          //Prevent unaligned read by reading the byte in one go.
-{$IFDEF FusedParameters}
-          else Result:= (l.u16 - (l.u32 shr 16));
-{$ELSE}
-          else Result:= integer(l.u16) - integer(r.u16);
-{$ENDIF}
-          tkString: Result:= (integer(l.ps1 > r.ps1) - integer(l.ps1 < r.ps1));
-          else Result:= (l.u16 - r.u16);
+          tkInteger: begin
+            if TypeInfo(T) = TypeInfo(SmallInt) then Result:= (PInt16(@Left)^ - PInt16(@Right)^)
+            else if TypeInfo(T) = TypeInfo(word) then Result:= integer(PWord(@Left)^) - integer(PWord(@Right)^)
+            //Keep R in one case otherwise linker will eliminate parameter Right.
+            //L is stored at [esp], R is stored at [esp+2]
+            //Prevent unaligned read by reading the word in one go.
+            //{$IFDEF FusedParameters}
+            //else Result:= (l.u16 - (l.u32 shr 16));
+            else if Signed then Result:= (PInt16(@Left)^ - PInt16(@Right)^)
+            else Result:= integer(PWord(@Left)^) - integer(PWord(@Right)^)
+          end;
+          tkString: Result:= (integer(PStr1(@Left)^ > PStr1(@Right)^) - integer(PStr1(@Left)^ < PStr1(@Right)^));
+          else Result:= integer(PWord(@Left)^) - integer(PWord(@Right)^)
         end;
       end;
       3: begin
         case GetTypeKind(T) of
-          tkString: Result:= (integer(l.ps2 > r.ps2) - integer(l.ps2 < r.ps2));
+          tkString: Result:= (integer(PStr2(@Left)^ > PStr2(@Right)^) - integer(PStr2(@Left)^ < PStr2(@Right)^));
           else Result:= (BinaryCompare(@Left, @Right, SizeOf(T)));
         end;
       end;
       4: begin
         case GetTypeKind(T) of
           tkSet, tkRecord, tkEnumeration: begin
-            Result:= (byte(l.u32 > r.u32) - byte(l.u32 < r.u32));
+            Result:= (integer(PCardinal(@Left)^ > PCardinal(@Right)^) - integer(PCardinal(@Left)^ < PCardinal(@Right)^));
           end;
-          tkFloat: Result:= (integer(l.f4 > r.f4) - integer(l.f4 < r.f4));
-          tkInteger: if Signed then Result:= (l.i32 - r.i32)
-          else Result:= (integer(l.u32 > r.u32) - integer(l.u32 < r.u32));
-          tkString: Result:= (integer(l.ps3 > r.ps3) - integer(l.ps3 < r.ps3));
-          else Result:= BinaryCompare4(l.u32, r.u32);
+          tkFloat: Result:= (integer(PSingle(@Left)^ > PSingle(@Right)^) - integer(PSingle(@Left)^ < PSingle(@Right)^));
+          tkInteger: begin
+            if (TypeInfo(T) = TypeInfo(integer))
+                     or (TypeInfo(T) = TypeInfo(CppLongInt))
+                     or (TypeInfo(T) = TypeInfo(HResult))
+            then Result:= (PInteger(@Left)^ - PInteger(@Right)^)
+            else if (TypeInfo(T) = TypeInfo(Cardinal))
+                 or (TypeInfo(T) = TypeInfo(CppULongInt))
+                 or (TypeInfo(T) = TypeInfo(UCS4Char))
+                 {$IFDEF MSWindows}
+                 or (TypeInfo(T) = TypeInfo(Handle_ptr))
+                 or (TypeInfo(T) = TypeInfo(HWND))
+                 or (TypeInfo(T) = TypeInfo(HHook))
+                 or (TypeInfo(T) = TypeInfo(HGDIOBJ))
+                 or (TypeInfo(T) = TypeInfo(HACCEL))
+                 or (TypeInfo(T) = TypeInfo(HBITMAP))
+                 or (TypeInfo(T) = TypeInfo(HBRUSH))
+                 or (TypeInfo(T) = TypeInfo(HCOLORSPACE))
+                 or (TypeInfo(T) = TypeInfo(HDC))
+                 or (TypeInfo(T) = TypeInfo(HGLRC))
+                 or (TypeInfo(T) = TypeInfo(HDESK))
+                 or (TypeInfo(T) = TypeInfo(HENHMETAFILE))
+                 or (TypeInfo(T) = TypeInfo(HFONT))
+                 or (TypeInfo(T) = TypeInfo(HICON))
+                 or (TypeInfo(T) = TypeInfo(HMENU))
+                 or (TypeInfo(T) = TypeInfo(HMETAFILE))
+                 or (TypeInfo(T) = TypeInfo(HPALETTE))
+                 or (TypeInfo(T) = TypeInfo(HPEN))
+                 or (TypeInfo(T) = TypeInfo(HRGN))
+                 or (TypeInfo(T) = TypeInfo(HSTR))
+                 or (TypeInfo(T) = TypeInfo(HTASK))
+                 or (TypeInfo(T) = TypeInfo(HWINSTA))
+                 or (TypeInfo(T) = TypeInfo(HKL))
+                 or (TypeInfo(T) = TypeInfo(HKEY))
+                 or (TypeInfo(T) = TypeInfo(HGESTUREINFO))
+                 {$ENDIF}
+            then Result:= (integer(PCardinal(@Left)^ > PCardinal(@Right)^) - integer(PCardinal(@Left)^ < PCardinal(@Right)^))
+            else if Signed then Result:= (PInteger(@Left)^ - PInteger(@Right)^)
+            else Result:= (integer(PCardinal(@Left)^ > PCardinal(@Right)^) - integer(PCardinal(@Left)^ < PCardinal(@Right)^));
+          end;
+          tkString: Result:= (integer(PStr3(@Left)^ > PStr3(@Right)^) - integer(PStr3(@Left)^ < PStr3(@Right)^));
+          tkPointer: Result:= (integer(PCardinal(@Left)^ > PCardinal(@Right)^) - integer(PCardinal(@Left)^ < PCardinal(@Right)^))
+          else Result:= BinaryCompare4(PCardinal(@Left)^, PCardinal(@Right)^);
         end;
       end;
       5, 6, 7: begin
         case GetTypeKind(T) of
-          //tkUnknown: if (SizeOf(T) = 6) then //Real48
-          //    Result:= (integer(L.f6 > R.f6) - integer(L.f6 < R.f6));
-          tkString: Result:= (Compare_PSn(l.ps, r.ps));
-          tkFloat: Result:= (integer(l.f6 > r.f6) - integer(l.f6 < r.f6));
+          tkString: Result:= (Compare_PSn(PStrn(@Left)^, PStrn(@Right)^));
+          tkFloat: Result:= (integer(PReal48(@Left)^ > PReal48(@Right)^) - integer(PReal48(@Left)^ < PReal48(@Right)^));
           else Result:= (FastBinaryCompare(@Left, @Right, SizeOf(T)));
         end
       end;
       8: begin
         case GetTypeKind(T) of
           tkInt64: begin
-            if Signed then Result:= (integer(l.i64 > r.i64) - integer(l.i64 < r.i64))
-            else Result:= (integer(l.u64 > r.u64) - integer(l.u64 < r.u64))
+            if (TypeInfo(T) = TypeInfo(Int64)) then begin
+              Result:= (integer(PInt64(@Left)^ > PInt64(@Right)^) - integer(PInt64(@Left)^ < PInt64(@Right)^))
+            end
+            else if (TypeInfo(T) = TypeInfo(UInt64))
+                 {$IFDEF MSWindows}
+                 or (TypeInfo(T) = TypeInfo(Handle_ptr))
+                 or (TypeInfo(T) = TypeInfo(HWND))
+                 or (TypeInfo(T) = TypeInfo(HHook))
+                 or (TypeInfo(T) = TypeInfo(HGDIOBJ))
+                 or (TypeInfo(T) = TypeInfo(HACCEL))
+                 or (TypeInfo(T) = TypeInfo(HBITMAP))
+                 or (TypeInfo(T) = TypeInfo(HBRUSH))
+                 or (TypeInfo(T) = TypeInfo(HCOLORSPACE))
+                 or (TypeInfo(T) = TypeInfo(HDC))
+                 or (TypeInfo(T) = TypeInfo(HGLRC))
+                 or (TypeInfo(T) = TypeInfo(HDESK))
+                 or (TypeInfo(T) = TypeInfo(HENHMETAFILE))
+                 or (TypeInfo(T) = TypeInfo(HFONT))
+                 or (TypeInfo(T) = TypeInfo(HICON))
+                 or (TypeInfo(T) = TypeInfo(HMENU))
+                 or (TypeInfo(T) = TypeInfo(HMETAFILE))
+                 or (TypeInfo(T) = TypeInfo(HPALETTE))
+                 or (TypeInfo(T) = TypeInfo(HPEN))
+                 or (TypeInfo(T) = TypeInfo(HRGN))
+                 or (TypeInfo(T) = TypeInfo(HSTR))
+                 or (TypeInfo(T) = TypeInfo(HTASK))
+                 or (TypeInfo(T) = TypeInfo(HWINSTA))
+                 or (TypeInfo(T) = TypeInfo(HKL))
+                 or (TypeInfo(T) = TypeInfo(HKEY))
+                 or (TypeInfo(T) = TypeInfo(HGESTUREINFO))
+                 {$ENDIF}
+            then Result:= (integer(PUInt64(@Left)^ > PUInt64(@Right)^) - integer(PUInt64(@Left)^ < PUInt64(@Right)^))
+            else if Signed then Result:= (integer(PInt64(@Left)^ > PInt64(@Right)^) - integer(PInt64(@Left)^ < PInt64(@Right)^))
+            else Result:= (integer(PUInt64(@Left)^ > PUInt64(@Right)^) - integer(PUInt64(@Left)^ < PUInt64(@Right)^))
           end;
-          tkFloat: Result:= (integer(l.f8 > r.f8) - integer(l.f8 < r.f8));
+          tkFloat: Result:= (integer(PDouble(@Left)^ > PDouble(@Right)^) - integer(PDouble(@Left)^ < PDouble(@Right)^));
           else begin
 {$IFDEF purepascal}
             Result:= (BinaryCompare8(@Left, @Right));
 {$ELSE !purepascal}{$IFDEF CPUX64}
-            Result:= (BinaryCompare8(l.u64, r.u64));
+            Result:= (BinaryCompare8(PUInt64(@Left)^, PUInt64(@Right)^));
 {$ELSE !CPUX64}
             Result:= (BinaryCompare8(@Left, @Right));
 {$ENDIF}{$ENDIF}
@@ -736,63 +873,64 @@ begin
         end;
       end;
       10: begin
-        if GetTypeKind(T) = tkFloat then Result:= (integer(l.f10 > r.f10) - integer(l.f10 < r.f10))
+        if GetTypeKind(T) = tkFloat then Result:= (integer(PExtended(@Left)^ > PExtended(@Right)^) - integer(PExtended(@Left)^ < PExtended(@Right)^))
         else Result:= FastBinaryCompare(@Left, @Right, SizeOf(T));
       end;
       else case GetTypeKind(T) of
-        tkString: Result:= (integer(l.ps > r.ps) - integer(l.ps < r.ps));
+        tkString: Result:= (integer(PStrn(@Left)^ > PStrn(@Right)^) - integer(PStrn(@Left)^ < PStrn(@Right)^));
         else Result:= FastBinaryCompare(@Left, @Right, SizeOf(T));
       end; {case}
     end;
   end;
 end;
 
+
 class function IComparer<T>.TestCompareFast(const Left, Right: T): integer;
-var
-  l: TCast absolute Left;
-  r: TCast absolute Right;
+//var
+//  l: TCast absolute Left;
+//  r: TCast absolute Right;
 begin
   case GetTypeKind(T) of
     //tkUnknown: ;
     tkInteger: case SizeOf(T) of
       1: begin
-        if Signed then Result:= CompareFast(l.i8, r.i8)
-        else Result:= CompareFast(l.u8, r.u8);
+        if Signed then Result:= CompareFast(PInt8(@left)^, PInt8(@Right)^)
+        else Result:= CompareFast(PByte(@Left)^, PByte(@Right)^);
       end;
       2: begin
-        if Signed then Result:= CompareFast(l.i16, r.i16)
-        else Result:= CompareFast(l.u16, r.u16);
+        if Signed then Result:= CompareFast(PInt16(@Left)^, PInt16(@Right)^)
+        else Result:= CompareFast(PWord(@Left)^, PWord(@Right)^);
       end;
       4: begin
-        if Signed then Result:= CompareFast(l.i32, r.i32)
-        else Result:= CompareFast(l.u32, r.u32);
+        if Signed then Result:= CompareFast(PInteger(@Left)^, PInteger(@Right)^)
+        else Result:= CompareFast(PCardinal(@Left)^, PCardinal(@Right)^);
       end;
     end;
-    tkChar: Result:= CompareFast(l.ac, r.ac);
+    tkChar: Result:= CompareFast(PAnsiChar(@Left)^, PAnsiChar(@Right)^);
     //tkEnumeration: ;
     tkFloat: case SizeOf(T) of
-      4: Result:= CompareFast(l.f4, r.f4);
-      6: Result:= CompareFast(l.f6, r.f6);
-      8: Result:= CompareFast(l.f8, r.f8);
-      10: Result:= CompareFast(l.f10, r.f10);
+      4: Result:= CompareFast(PSingle(@Left)^, PSingle(@Right)^);
+      6: Result:= CompareFast(PReal48(@Left)^, PReal48(@Right)^);
+      8: Result:= CompareFast(PDouble(@Left)^, PDouble(@Right)^);
+      10: Result:= CompareFast(PExtended(@Left)^, PExtended(@Right)^);
     end;
-    tkString: Result:= CompareFast(l.ps, r.ps);
+    tkString: Result:= CompareFast(PStrn(@Left)^, PStrn(@Right)^);
     //tkSetim: ;
-    tkClass: Result:= CompareFast(TObject(l.p), TObject(r.p));
+    tkClass: Result:= CompareFast(TObject(PPointer(@Left)^), TObject(PPointer(@Right)^));
     //tkMethod: ;
-    tkWChar: Result:= CompareFast(l.wc, r.wc);
-    tkLString: Result:= CompareFast(AnsiString(l.p), AnsiString(r.p));
-    tkWString: Result:= CompareFast(WideString(l.p), WideString(r.p));
+    tkWChar: Result:= CompareFast(PChar(@Left)^, PChar(@Right)^);
+    tkLString: Result:= CompareFast(AnsiString(PPointer(@Left)^), AnsiString(PPointer(@Right)^));
+    tkWString: Result:= CompareFast(WideString(PPointer(@Left)^), WideString(PPointer(@Right)^));
     //tkVariant: ;//tkArray: ;//tkRecord: ;
-    tkInterface: Result:= CompareFast(IInterface(l.p), IInterface(r.p));
+    tkInterface: Result:= CompareFast(IInterface(PPointer(@Left)^), IInterface(PPointer(@Right)^));
     tkInt64: begin
-      if Signed then Result:= CompareFast(l.i64, r.i64)
-      else Result:= CompareFast(l.u64, r.u64);
+      if Signed then Result:= CompareFast(PInt64(@Left)^, PInt64(@Right)^)
+      else Result:= CompareFast(PUInt64(@Left)^, PUInt64(@Right)^);
     end;
     //tkDynArray:;
-    tkUString: Result:= CompareFast(UnicodeString(l.p), UnicodeString(r.p));
+    tkUString: Result:= CompareFast(UnicodeString(PPointer(@Left)^), UnicodeString(PPointer(@Right)^));
     //tkClassRef: ;
-    tkPointer: Result:= CompareFast(l.p, r.p);
+    tkPointer: Result:= CompareFast(PPointer(@Left)^, PPointer(@Right)^);
     //tkProcedure: ;
     else Result:= Compare(Left, Right);
   end;
@@ -800,35 +938,45 @@ end;
 
 {TODO -oJohan -cRewrite : Write special case to string comparison etc.}
 class function IComparer<T>.Equals(const Left, Right: T): boolean;
-var
-  l: TCast absolute Left;
-  r: TCast absolute Right;
+//var
+//  l: TCast absolute Left;
+//  r: TCast absolute Right;
 begin
-  case GetTypeKind(T) of
-    tkUString: Result:= FastDefaults.SameStr(UnicodeString(l.p), UnicodeString(r.p));
-    tkLString: Result:= SameStr(AnsiString(l.p), AnsiString(r.p));
-    tkWString: Result:= FastDefaults.SameStr(WideString(l.p), WideString(r.p));
-    tkDynArray: Result:= (Compare_DynArray(l.p, r.p, ElementSize)) = 0;
-    tkVariant: Result:= (Compare_Variant(@l, @r)) = 0;
-    tkClass, tkClassRef, tkPointer, tkInterface, tkProcedure: begin
-      Result:= boolean(l.nu = r.nu);
+  if SizeOf(T) = 0  then Result:= true
+  else case GetTypeKind(T) of
+    tkString: case SizeOf(T) of
+      1: Result:= PByte(@Left)^ = PByte(@Right)^;
+      2: Result:= PStr1(@Left)^ = PStr1(@Right)^;
+      3: Result:= PStr2(@Left)^ = PStr2(@Right)^;
+      4: Result:= PStr3(@Left)^ = PStr3(@Right)^;
+      else Result:= PStrn(@Left)^ = PStrn(@Right)^;
+    end;
+    tkFloat: case SizeOf(T) of
+      4: Result:= (PSingle(@Left)^ = PSingle(@Right)^);
+      6: Result:= (PReal48(@Left)^ = PReal48(@Right)^);
+      8: Result:= (PDouble(@Left)^ = PDouble(@Right)^);
+      10: Result:= (PExtended(@Left)^ = PExtended(@Right)^);
+    end;
+    tkUString: Result:= FastDefaults.SameStr(UnicodeString(PPointer(@Left)^), UnicodeString(PPointer(@Right)^));
+    tkLString: Result:= SameStr(AnsiString(PPointer(@Left)^), AnsiString(PPointer(@Right)^));
+    tkWString: Result:= FastDefaults.SameStr(WideString(PPointer(@Left)^), WideString(PPointer(@Right)^));
+    tkDynArray: Result:= (Compare_DynArray(PPointer(@Left)^, PPointer(@Right)^, ElementSize)) = 0;
+    tkVariant: Result:= (Compare_Variant(@left, @right)) = 0;
+    tkClassRef, tkPointer, tkInterface, tkProcedure: begin
+      Result:= boolean(PNativeUInt(@Left)^ = PNativeUInt(@Right)^);
     end;
     tkMethod: begin
-      Result:= (l.m.Data = l.m.Data) and (l.m.Code = l.m.Code);
+      Result:= (PMethod(@Left)^.Data = PMethod(@Right)^.Data) and (PMethod(@Left)^.Code = PMethod(@Right)^.Code);
     end;
+    tkClass: Result:= ((PPointer(@Left)^ = nil) and (PPointer(@Right)^ = nil)) or (((PPointer(@Left)^ <> nil) and (TObject(PPointer(@Left)^).equals(TObject(PPointer(@Right)^)))));
     else case SizeOf(T) of
       0: Result:= true;
-      1: Result:= boolean(l.i8 = r.i8);
-      2: Result:= boolean(l.i16 = r.i16);
-      4: if GetTypeKind(T) = tkFloat then Result:= (l.f4 = r.f4)
-      else Result:= boolean(l.i32 xor r.i32);
-      6: if GetTypeKind(T) = tkFloat then Result:= (l.f6 = r.f6)
-      else Result:= Compare(Left, Right) = 0;
-      8: if GetTypeKind(T) = tkFloat then Result:= (l.f8 = r.f8)
-      else Result:= boolean(l.i64 xor r.i64);
-      10: if GetTypeKind(T) = tkFloat then Result:= (l.f10 = r.f10)
-      else Result:= BinaryEquals(l.p, r.p, SizeOf(T));
-      else Result:= BinaryEquals(l.p, r.p, SizeOf(T));
+      1: Result:= (PInt8(@Left)^ = PInt8(@Right)^);
+      2: Result:= (PInt16(@Left)^ = PInt16(@Right)^);
+      3: Result:= (PStr2(@Left)^ = PStr2(@Right)^);
+      4: Result:= (PInteger(@Left)^ = PInteger(@Right)^);
+      8: Result:= (PInt64(@Left)^ = PInt64(@Right)^);
+      else Result:= BinaryEquals(@left, @right, SizeOf(T));
     end;
   end;
 end;
@@ -843,11 +991,7 @@ begin
     tkInteger, tkChar, tkEnumeration, tkSet, tkWChar, tkRecord, tkInt64, tkFloat, tkClass, tkMethod, tkInterface,
       tkClassRef, tkPointer, tkProcedure:
     begin
-{$IFDEF CPUX64}
-      Result:= MurmurHash3(V.u64, SizeOf(T), Seed);
-{$ELSE}
-      Result:= MurmurHash3(V.u32, SizeOf(T), Seed);
-{$ENDIF}
+      Result:= MurmurHash3(V.nu, SizeOf(T), Seed);
     end;
     tkString: Result:= MurmurHash3(V.ps[low(string)], Length(V.ps) * SizeOf(V.ps[low(string)]), Seed);
     tkLString: Result:= MurmurHash3(AnsiString(V.p)[low(string)], Length(AnsiString(V.p)) * SizeOf(AnsiChar), Seed);
@@ -894,6 +1038,94 @@ end;
 //end;
 //{$endif}{$endif}
 
+function SameStr(const S1, S2: WideString): boolean; overload;
+{$IFDEF PurePascal}
+const
+  Forever = false;
+var
+  i: integer;
+begin
+  Result:= pointer(S1) = pointer(S2);
+  if Result then Exit;
+  Result:= not((S1 = nil) or (S1 = nil));
+  if Not(Result) then Exit;
+  for i:= 0 to High(Integer) do begin end;
+    Result:= PByte(S1)[i] = PByte(S2)[i];
+    if Result then Exit;
+    if PByte(S1)[i] = 0 then Exit;
+  end;
+end;
+{$ELSE}
+{$IFDEF CPUX64}
+asm
+  .NOFRAME
+  cmp   rcx, rdx
+  jz @done       //pointers are the same
+  test  rcx, rdx
+  jz @PossibleNilPointer
+@StartLoop:
+  xor  	r10, r10
+@loop:
+  movzx	rax, word ptr [rcx + r10]	// fetch bytes
+	movzx	r9, word ptr [rdx + r10]
+
+	test	eax, r9d		// if there's a null char
+	jz	@dif
+	sub	  eax, r9d		// compare bytes,
+	jne	@done		// quit if not equal
+
+	add   r10,2		// else go for next round
+	jmp	@loop
+@dif:
+  sub   eax,r9d
+@done:
+  setz  al
+  movzx eax, al
+  ret
+@PossibleNilPointer:
+  or    rcx, rcx
+  jz @NotEqual
+  or    rdx, rdx
+  jnz @StartLoop
+@NotEqual:
+  xor   eax,eax
+  ret
+end;
+{$ELSE !CPUX64}
+asm
+  push  esi
+  push  edi
+  cmp  eax,edx
+  jz @done
+  test eax, edx
+  jnz @NoNilPointer
+  or   eax,eax
+  jz @dif
+  or   edx,edx
+  jz @dif
+@NoNilPointer:
+	xor  	ecx, ecx
+@loop:
+  movzx	esi, word ptr [eax + ecx]	// fetch bytes
+	movzx	edi, word ptr [edx + ecx]
+
+  cmp	  edi, esi		// compare bytes,
+	jne	@done	      	// quit if not equal
+	test	esi, edi		// if there's a null char
+	jz	@done
+
+	add   ecx,2		// else go for next round
+	jmp	@loop
+@dif:
+  sub   edi,esi
+@done:
+  setz  al
+  pop   esi
+  pop   edi
+  ret
+end;
+{$ENDIF}{$ENDIF}
+
 
 
 function SameStr(const S1, S2: string): boolean;
@@ -906,44 +1138,80 @@ end;
 // RCX = S1
 // RDX = S2
 asm
+  .NOFRAME
   cmp  RCX, RDX
   je @done
-  test RCX,RDX
-  jnz @NoNilStrings
   sub  RCX,4
   js @done  //S1 is nil, S2 is not
   sub  RDX,4
   js @done  //S2 is nil, S2 is not
 @NoNilStrings:
-  //Compare the first two chars.
-  mov  EAX,[RCX+4]
-  xor  EAX,[RDX+4]
-  jnz @done
-  //First two chars are the same.
+  //Compare the length and 2st two chars
   mov  R8,[RCX]
   mov  R9,[RDX]
-  sub  R9,R8
+  cmp  R9,R8
   jnz @done  //The lengths are different
+  mov  R8d,R8d   //zero-out non length parts.
   neg  R8
   //use negative based indexing
   sub  RCX, R8
   sub  RDX, R8
 @compareLoop:
   add  R8,4 //First 2 chars are already done
-  jns @done //Strings are equal.
+  jns @equal //Strings are equal.
   mov  EAX,[RCX+R8+4]
   xor  EAX,[RCX+R8+4]
   jz @compareLoop
   //There is a difference, is it within the legal bounds of the strings?
   add  R8,4
   jz  @done
-  and  eax,$FFFF
+  and  EAX,$FFFF
 @done:
   setz AL
+  ret
+@equal:
+  mov  AL,1
 end;
-{$ELSE !CPUX64} inline;
-begin
-  Result:= System.SysUtils.SameStr(S1, S2);
+{$ELSE !CPUX64}
+// EAX = S1
+// EDX = S2
+asm
+  push EBX
+  cmp  EAX, EDX
+  je @equal
+  sub  EAX,4
+  js @different  //S1 is nil, S2 is not
+  sub  EDX,4
+  js @different  //S2 is nil, S2 is not
+@NoNilStrings:
+  //Compare the length and 2st two chars
+  mov  EBX,[EAX]
+  mov  ECX,[EDX]
+  cmp  EBX,ECX
+  jnz @different  //The lengths are different
+  mov  EBX,[EAX+4]
+  xor  EBX,[EDX+4]
+  jnz @different
+  neg  ECX
+  //use negative based indexing
+  sub  EAX, ECX
+  sub  EDX, ECX
+@compareLoop:
+  add  ECX,4 //First 2 chars are already done
+  jns @equal //Strings are equal.
+  mov  EBX,[EAX+ECX+4]
+  xor  EBX,[EDX+ECX+4]
+  jz @compareLoop
+  //There is a difference, is it within the legal bounds of the strings?
+  add  ECX,4
+  jz  @equal
+@different:
+  xor  EAX,EAX
+  pop  EBX
+  ret
+@equal:
+  mov  AL,1
+  pop  EBX
 end;
 {$ENDIF CPUX64}{$ENDIF PurePascal}
 
@@ -966,6 +1234,7 @@ asm //StackAligned
   > 0 if S1 > S2,
   < 0 if S1 < S2
   Code size: ??? bytes}
+.NOFRAME
   CMP RCX, RDX
   JE @SameString
   {Is either of the strings perhaps nil?}
@@ -1198,7 +1467,7 @@ end;
 {$ELSE}
 {$REGION 'asm'}
 {$IFDEF CPUx86}
-  asm
+asm
     push EBX
     push EDI
     push ESI
@@ -1206,40 +1475,41 @@ end;
     //EAX = data
     //ECX = count in bytes
     //EDX = seed
-    mov  ESI,ECX
-    shr  ECX,2
-    jz @remaining_bytes
-  @loop:
-    mov  EDI,[EAX]
+    add EAX, ECX
+    neg ECX
+    add ECX,4
+    jg @remaining_bytes
+@loop:
+    mov  EDI,[EAX+ECX-4]
     imul EDI,EDI,c1
     rol  EDI,r1
     imul EDI,EDI,c2
     xor  EDX,EDI
     rol  EDX,r2
     lea  EDX,[EDX*4+EDX+n]
-    lea  EAX,[EAX+4]
-    dec  ECX
-    jnz @loop
-  @remaining_bytes:
-    mov  ECX,ESI
-    and  ECX,$3
+    add  ECX,4
+    jle @loop
+@remaining_bytes:
+    cmp  ECX,4
     jz @finalization
-    xor  EBX,EBX
-    dec  ECX
-    mov  BL,byte ptr [EAX+ECX]
+    movzx EBX,byte ptr [EAX+ECX-4]
+    cmp  ECX,3//inc  RCX
     jz @process_remaining
-    shl  EBX,8
-    dec  ECX
-    mov  BL,byte ptr [EAX+ECX]
-    jz @process_remaining
-    shl  EBX,8
-    mov  BL,byte ptr [EAX]
-  @process_remaining:
+    ror  EBX,8//ror  R9d,24
+    mov  BL,byte ptr [EAX+ECX-3]
+    cmp  ECX,2//inc  RCX
+    jz @shift_back
+    ror  EBX,8//ror  R9d,24
+    mov  bl,byte ptr [EAX+ECX-2]
+    rol  EBX,8
+@shift_back:
+    rol  EBX,8
+@process_remaining:
     imul EBX,EBX,c1
     rol  EBX,r1
     imul EBX,EBX,c2
     xor  EDX,EBX
-  @finalization:
+@finalization:
     xor  EDX,ESI
     mov  EAX,EDX
     shr  EDX,16
@@ -1259,64 +1529,70 @@ end;
 {$ENDIF}
 {$IFDEF CPUx64}
 asm
-  push RBX
-  push RDI
-  push RSI
-  mov  RAX,RCX
-  mov  RCX,RDX
-  mov  RDX,R8
-  //RAX = data
-  //RCX = count in bytes
-  //RDX = seed
-  mov  ESI,ECX
-  shr  ECX,2
-  jz @remaining_bytes
+    .NOFRAME
+    xchg R10,RDI
+    xchg R11,RSI
+    mov  RAX,RCX
+    mov  RCX,RDX
+    mov  RDX,R8
+    //RAX = data
+    //RCX = count in bytes
+    //RDX = seed
+    mov  ESI,ECX
+    //make index negative based.
+    //and  ECX,not(3)
+    neg  RCX
+    sub  RAX, RCX
+    add  RCX, 4
+    jg @remaining_bytes
 @loop:
-  mov  EDI, dword ptr [RAX]
-  imul EDI,EDI,c1
-  rol  EDI,r1
-  imul EDI,EDI,c2
-  xor  EDX,EDI
-  rol  EDX,r2
-  lea  EDX,dword ptr [EDX*4+EDX+n] // *5 + n
-  lea  RAX,qword ptr [RAX+4]
-  dec  ECX
-  jnz @loop
+    mov  EDI,[RAX+RCX-4]
+    imul EDI,EDI,c1
+    rol  EDI,r1
+    imul EDI,EDI,c2
+    xor  EDX,EDI
+    rol  EDX,r2
+    lea  EDX,[EDX*4+EDX+n] // *5 + n
+    //lea  RAX,qword ptr [RAX+4]
+    add  RCX,4
+    jle @loop
 @remaining_bytes:
-  mov  ECX,ESI
-  and  ECX,$3
-  jz @finalization
-  xor  RBX,RBX
-  dec  ECX
-  mov  BL,byte ptr [RAX+RCX]
-  jz @process_remaining
-  shl  EBX,8
-  dec  ECX
-  mov  BL,byte ptr [RAX+RCX]
-  jz @process_remaining
-  shl  EBX,8
-  mov  BL,byte ptr [RAX]
+    cmp  RCX,4
+    //mov  ECX,ESI
+    //and  ESI,$3
+    jz @finalization
+    movzx r9,byte ptr [RAX+RCX-4]
+    cmp  RCX,3//inc  RCX
+    jz @process_remaining
+    ror  R9,8//ror  R9d,24
+    mov  R9b,byte ptr [RAX+RCX-3]
+    cmp  RCX,2//inc  RCX
+    jz @shift_back
+    ror  R9,8//ror  R9d,24
+    mov  R9b,byte ptr [RAX+RCX-2]
+    rol  R9,8
+@shift_back:
+    rol  R9,8
 @process_remaining:
-  imul EBX,EBX,c1
-  rol  EBX,r1
-  imul EBX,EBX,c2
-  xor  EDX,EBX
+    imul R9d,R9d,c1
+    rol  R9d,r1
+    imul R9d,R9d,c2
+    xor  EDX,R9d
 @finalization:
-  xor  EDX,ESI
-  mov  EAX,EDX
-  shr  EDX,16
-  xor  EDX,EAX
-  imul EDX,EDX,f1
-  mov  EAX,EDX
-  shr  EDX,13
-  xor  EDX,EAX
-  imul EDX,EDX,f2
-  mov  EAX,EDX
-  shr  EDX,16
-  xor  EAX,EDX
-  pop  RSI
-  pop  RDI
-  pop  RBX
+    xor  EDX,ESI
+    mov  EAX,EDX
+    shr  EDX,16
+    xor  EDX,EAX
+    imul EDX,EDX,f1
+    mov  EAX,EDX
+    shr  EDX,13
+    xor  EDX,EAX
+    imul EDX,EDX,f2
+    mov  EAX,EDX
+    shr  EDX,16
+    xor  EAX,EDX
+    xchg R10,RDI
+    xchg R11,RSI
 end;
 {$ENDIF}
 {$ENDREGION}
@@ -1558,6 +1834,48 @@ end;
 function TDelegatedComparer<T>.Compare(const Left, Right: T): Integer;
 begin
   Result:= FCompare(Left, Right);
+end;
+
+{ TCompareRec<T> }
+
+class constructor TRec<T>.Init;
+begin
+  TRec<T>.FCompare:= TComparer<T>.Default.Compare;
+end;
+
+class operator TRec<T>.Implicit(const a: TRec<T>): T;
+begin
+  Result:= a.FData;
+end;
+
+class operator TRec<T>.Implicit(const a: T): TRec<T>;
+begin
+  Result.FData:= a;
+end;
+
+class operator TRec<T>.GreaterThan(const L, R: TRec<T>): boolean;
+begin
+  Result:= (FCompare(L,R) > 0);
+end;
+
+class operator TRec<T>.Equal(const L, R: TRec<T>): boolean;
+begin
+  Result:= (FCompare(L,R) > 0);
+end;
+
+class operator TRec<T>.NotEqual(const L, R: TRec<T>): boolean;
+begin
+  Result:= (FCompare(L,R) <> 0);
+end;
+
+class operator TRec<T>.LessThan(const L, R: TRec<T>): boolean;
+begin
+  Result:= (FCompare(L,R) < 0);
+end;
+
+class operator TRec<T>.Explicit(const a: T): TRec<T>;
+begin
+  Result.FData:= a;
 end;
 
 end.

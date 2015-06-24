@@ -13,7 +13,8 @@ uses
   DUnitX.TestFramework,
   TestFastDefaults,
   QuickerSort in '..\QuickerSort.pas',
-  TestQuickerSort in 'TestQuickerSort.pas';
+  TestQuickerSort in 'TestQuickerSort.pas',
+  OriginalSort in 'OriginalSort.pas';
 
 // in 'TestFastDefaults.pas';
 var

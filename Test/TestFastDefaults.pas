@@ -25,9 +25,7 @@ type
     a: integer;
   end;
   TOddRec = packed record
-    a: byte;
-    b: integer;
-    c: byte;
+    a0,a1,a2,a3,a4,a5: byte;
   end;
   TNormalRec = record
     a: byte;
@@ -64,6 +62,14 @@ type
   TRecDynArray  = array of TManagedRec;
   TProcedure = procedure;
   TTestProcedure = procedure(const L,R: byte);
+
+  TAlwaysEqual = class(TObject)
+    function Equals(a: TObject): boolean; override;
+  end;
+
+  TNeverEqual = class(TObject)
+    function Equals(a: TObject): boolean; override;
+  end;
 
 
 //Have we covered all types?
@@ -129,9 +135,9 @@ type
     [Test]
     procedure TestBigRec;
     [Test]
-    [TestCase('Normal enum', 'red,blue')]
-    [TestCase('Normal enum', 'blue,blue')]
-    [TestCase('Normal enum', 'orange,blue')]
+    [TestCase('Normal enum 1', 'red,blue')]
+    [TestCase('Normal enum 2', 'blue,blue')]
+    [TestCase('Normal enum 3', 'orange,blue')]
     procedure TestEnums(const L, R: TEnum);
     [Test]
     procedure TestSets;
@@ -167,42 +173,54 @@ type
     procedure TestMethod;
     [Test]
     procedure TestProcedure;
-    //[Test]
+    [Test]
     procedure TestVariant;
+    [Test]
+    [TestCase ('Murmurhash1', '')]
+    [TestCase ('Murmurhash2', 't')]
+    [TestCase ('Murmurhash3', 'te')]
+    [TestCase ('Murmurhash4', 'tes')]
+    [TestCase ('Murmurhash5', 'test')]
+    [TestCase ('Murmurhash6', 'test1')]
+    [TestCase ('Murmurhash7', 'testtesttest')]
+    [TestCase ('Murmurhash8', 'testtesttest1')]
+    [TestCase ('Murmurhash9', 'testtesttest12')]
+    [TestCase ('Murmurhash10', 'testtesttest123')]
+    procedure TestStringMurmurHash3(const TestData: AnsiString);
   end;
 
   [TestFixture]
   TTestFloat<T: record> = class(TObject)
     [Test]
-    [TestCase('Float', '100.0,100.0')]
-    [TestCase('Float', '-10000.0,100.0')]
-    [TestCase('Float', '100000.0,-10000.0')]
-    [TestCase('Float', '0.0,-10000.0')]
-    [TestCase('Float', '100000.0,0.0')]
-    [TestCase('Float', '0.0,0.0')]
+    [TestCase('Float 1', '100.0,100.0')]
+    [TestCase('Float 2', '-10000.0,100.0')]
+    [TestCase('Float 3', '100000.0,-10000.0')]
+    [TestCase('Float 4', '0.0,-10000.0')]
+    [TestCase('Float 5', '100000.0,0.0')]
+    [TestCase('Float 6', '0.0,0.0')]
     procedure TestFloat(const L,R: T);
   end;
 
   [TestFixture]
-  TTestInteger<T: record> = class(TObject)
+  TTestInteger<T> = class(TObject)
     [Test]
-    [TestCase('Integer', '-1,100')]
-    [TestCase('Integer', '100,$10000000')]
-    [TestCase('Integer', '-1000,-12000')]
-    [TestCase('Integer', '100,100')]
-    [TestCase('Integer', '-100,-100')]
+    [TestCase('Integer 1', '-1,100')]
+    [TestCase('Integer 2', '100,$10000000')]
+    [TestCase('Integer 3', '-1000,-12000')]
+    [TestCase('Integer 4', '100,100')]
+    [TestCase('Integer 5', '-100,-100')]
     procedure TestInt(const L, R: T);
   end;
 
   [TestFixture]
-  TTestChar<T: record> = class(TObject)
+  TTestChar<T> = class(TObject)
     [Test]
-    [TestCase('Char', 'a,a')]
-    [TestCase('Char', 'a,b')]
-    [TestCase('Char', 'c,a')]
-    [TestCase('Char', ',a')]
-    [TestCase('Char', 'a,')]
-    [TestCase('Char', ',')]
+    [TestCase('Char 1', 'a,a')]
+    [TestCase('Char 2', 'a,b')]
+    [TestCase('Char 3', 'c,a')]
+    [TestCase('Char 4', ',a')]
+    [TestCase('Char 5', 'a,')]
+    [TestCase('Char 6', ',')]
     procedure TestChar(const L, R: T);
   end;
 
@@ -260,12 +278,17 @@ type
     class var Def: System.Generics.Defaults.IComparer<T>;
     class var F: FastDefaults.TComparison<T>;
     class var Fr: FastDefaults.TComparison<T>;
+    class var DefEqual: System.Generics.Defaults.IEqualityComparer<T>;
+    class var E: FastDefaults.TEqualityComparison<T>;
     class function BinaryCompare(const Left, Right: Pointer; Size: Integer): Integer; static;
     class function Faster(const Left, Right: T): integer; static;
   public
     class function Real48Comparison(const Left, Right: T): Integer; static;
+    class function Real48Equals(const Left, Right: T): Boolean; static;
     class function Slow(const Left, Right: T): integer; static;
+    class function SlowEqual(const Left, Right:T): boolean; static;
     class function Fast(const Left, Right: T): integer; static;
+    class function FastEqual(const Left, Right: T): boolean; static;
     class procedure Test(const Left, Right: T; message: string = ''); static;
     class constructor Init;
   end;
@@ -278,16 +301,28 @@ uses
 { TTest<T> }
 class function TTest<T>.Real48Comparison(const Left, Right :T): Integer;
 begin
-  Result:= integer(Real48((@Left)^) > Real48((@Right)^)) - integer(Real48((@Left)^) < Real48((@Right)^));
+  Result:= integer((PReal48(@Left)^) > PReal48(@Right)^) - integer((PReal48(@Left)^) < PReal48(@Right)^);
 end;
+
+class function TTest<T>.Real48Equals(const Left, Right :T): Boolean;
+begin
+  Result:= TTest<T>.Real48Comparison(Left, Right) = 0;
+end;
+
+
 
 class constructor TTest<T>.Init;
 begin
   if (GetTypeKind(T) = tkFloat) and (SizeOf(T) = 6) then begin
     Def := System.Generics.Defaults.TComparer<T>.Construct(TTest<T>.Real48Comparison);
-  end else Def:= System.Generics.Defaults.TComparer<T>.Default;
+    DefEqual:= System.Generics.Defaults.TEqualityComparer<T>.Construct(TTest<T>.Real48Equals,nil);
+  end else begin
+    Def:= System.Generics.Defaults.TComparer<T>.Default;
+    DefEqual:= System.Generics.Defaults.TEqualityComparer<T>.Default;
+  end;
   F:= FastDefaults.TComparer<T>.Default.Compare;
   Fr:= FastDefaults.TComparer<T>.Default.TestCompareFast;
+  E:= FastDefaults.TComparer<T>.Default.Equals;
 end;
 
 class function TTest<T>.BinaryCompare(const Left, Right: Pointer; Size: Integer): Integer;
@@ -345,9 +380,11 @@ end;
 class procedure TTest<T>.Test(const Left, Right: T; message: string = '');
 var
   ResultF, ResultS, ResultFr: Integer;
+  DoubleCheck: Integer;
   Ls,Rs: string;
   X: TTypeKind;
   NewMessage: string;
+  FEqual, SEqual: boolean;
 begin
   X:= GetTypeKind(T);
   Assert.AreEqual(X, GetTypeKind(T));
@@ -355,6 +392,10 @@ begin
     ResultF:= Fast(Left, Right);
   except
     ResultF:= MaxInt;
+  end;
+  DoubleCheck:= Slow(Left, Right);
+  if ResultF <> DoubleCheck then begin
+    ResultF:= Fast(Left, Right);
   end;
   try
     ResultFr:= Faster(Left, Right);
@@ -381,6 +422,12 @@ begin
                        + ' Slow = ' + IntToStr(ResultS)
                        + ' L = ' + Ls + ' R = ' + Rs;
   Assert.IsTrue(ResultFr = ResultS, NewMessage);
+  FEqual:= FastEqual(Left, Right);
+  SEqual:= SlowEqual(Left, Right);
+  Newmessage:= message + 'FastEqual = ' + BoolToStr(FEqual)
+                       + ' SlowEqual = ' + BoolToStr(SEqual)
+                       + ' L = ' + Ls + ' R = ' + Rs;
+  Assert.IsTrue(FEqual = SEqual, NewMessage);
 end;
 
 procedure TestComplex.Setup;
@@ -486,15 +533,19 @@ end;
 procedure TestComplex.TestReal48;
 var
   OldDef: System.Generics.Defaults.IComparer<Real48>;
+  OldDefEquals: System.Generics.Defaults.IEqualityComparer<Real48>;
 begin
   OldDef:= TTest<Real48>.Def;
   TTest<Real48>.Def := System.Generics.Defaults.TComparer<Real48>.Construct(TTest<Real48>.Real48Comparison);
+  OldDefEquals:= TTest<Real48>.DefEqual;
+  TTest<Real48>.DefEqual:= System.Generics.Defaults.TEqualityComparer<Real48>.Construct(TTest<Real48>.Real48Equals,nil);
   TTest<Real48>.Test(100.0,100.0);
   TTest<Real48>.Test(100000.0,-10000.0);
   TTest<Real48>.Test(0.0,-10000.0);
   TTest<Real48>.Test(100000.0, 0.0);
   TTest<Real48>.Test(0.0, 0.0);
   TTest<Real48>.Def:= OldDef;
+  TTest<Real48>.DefEqual:= OldDefEquals;
 end;
 
 procedure TestComplex.TestSets;
@@ -526,8 +577,12 @@ end;
 procedure TestComplex.TestClass;
 var
   TestClass: TObject;
+  Always: TAlwaysEqual;
+  Never: TNeverEqual;
 begin
   TestClass:= TObject.Create;
+  Always:= TAlwaysEqual.Create;
+  Never:= TNeverEqual.Create;
   try
     TTest<TObject>.Test(TestClass, Self);
     TTest<TObject>.Test(Self, TestClass);
@@ -535,8 +590,18 @@ begin
     TTest<TObject>.Test(nil,nil);
     TTest<TObject>.Test(TestClass, nil);
     TTest<TObject>.Test(nil, Self);
+    TTest<TAlwaysEqual>.Test(nil, Always);
+    TTest<TAlwaysEqual>.Test(Always, nil);
+    TTest<TAlwaysEqual>.Test(Always, Always);
+    TTest<TObject>.Test(Always, Never);
+    TTest<TObject>.Test(Never, Always);
+    TTest<TNeverEqual>.Test(Never, Never);
+    TTest<TNeverEqual>.Test(nil, Never);
+    TTest<TNeverEqual>.Test(Never, nil);
   finally
     TestClass.Free;
+    Always.Free;
+    Never.Free;
   end;
 end;
 
@@ -741,12 +806,9 @@ procedure TestComplex.TestOddRec;
 var
   OddRec1, OddRec2: TOddRec;
 begin
-  OddRec1.a:= 1;
-  OddRec1.b:= 1000;
-  OddRec1.c:= byte( -10);
-  OddRec2.a:= 2;
-  OddRec1.b:= -9999999;
-  OddRec1.c:= 10;
+  OddRec1.a0:= 1; OddRec1.a1:= 2; OddRec1.a2:= 3; OddRec1.a3:= 4; OddRec1.a4:= 5; OddRec1.a5:= 6;
+  OddRec2:= OddRec1;
+  OddRec2.a5:= 255;
   TTest<TOddRec>.Test(OddRec1, OddRec1,'1:');
   TTest<TOddRec>.Test(OddRec1, OddRec2,'2:');
   TTest<TOddRec>.Test(OddRec2, OddRec1,'3:');
@@ -1030,27 +1092,27 @@ begin
     vrSmallint: begin
       TVarData(Result).VType:= varSmallInt;
       TVarData(Result).VType:= varSmallint;
-      TVarData(Result).VSmallInt:= Random(16000) - 8000;
+      TVarData(Result).VSmallInt:= Random(16000) div 2;
     end;
     vrInteger: begin
       TVarData(Result).VType:= varInteger;
-      TVarData(Result).VInteger:= Random(16000) - 8000;
+      TVarData(Result).VInteger:= Random(16000) div 2;
     end;
     vrSingle: begin
       TVarData(Result).VType:= varSingle;
-      TVarData(Result).VSingle:= Random(16000) - 8000;
+      TVarData(Result).VSingle:= Random(16000) / 2;
     end;
     vrDouble: begin
       TVarData(Result).VType:= varDouble;
-      TVarData(Result).VDouble:= Random(16000) - 8000;
+      TVarData(Result).VDouble:= Random(16000) / 2;
     end;
     vrCurrency: begin
       TVarData(Result).VType:= varCurrency;
-      TVarData(Result).VCurrency:= Random(16000) - 8000;
+      TVarData(Result).VCurrency:= Random(16000) div 2;
     end;
     vrDate: begin
       TVarData(Result).VType:= varDate;
-      TVarData(Result).VDate:= Random(16000) - 8000;
+      TVarData(Result).VDate:= Random(16000) div 2;
     end;
     vrOleStr: begin
       Result:= COleStr;
@@ -1061,7 +1123,7 @@ begin
     end;
     vrError: begin
       TVarData(Result).VType:= VarError;
-      TVarData(Result).VError:= Random(16000) - 8000;
+      TVarData(Result).VError:= Random(16000) div 2;
     end;
     vrBoolean: begin
       TVarData(Result).VType:= VarBoolean;
@@ -1073,7 +1135,7 @@ begin
     end;
     vrShortInt: begin
       TVarData(Result).VType:= VarShortInt;
-      TVarData(Result).VShortInt:= Random(100) - 50;
+      TVarData(Result).VShortInt:= Random(100) div 2;
     end;
     vrByte: begin
       TVarData(Result).VType:= VarByte;
@@ -1089,7 +1151,7 @@ begin
     end;
     vrInt64: begin
       TVarData(Result).VType:= VarInt64;
-      TVarData(Result).VInt64:= Random(16000) - 8000;
+      TVarData(Result).VInt64:= Random(16000) div 2;
     end;
     vrUInt64: begin
       TVarData(Result).VType:= VarUInt64;
@@ -1119,6 +1181,7 @@ var
   V1,V2: Variant;
   i1,i2: VarType;
   s1,s2: string;
+  OK: boolean;
 begin
   for i1:= High(VarType) downto Low(VarType) do begin
     for i2:= Low(VarType) to High(VarType) do begin
@@ -1129,12 +1192,68 @@ begin
       if (i2 = vrEmpty) then begin
         WriteLn(IntToStr(integer(i1)));
       end;
-      TTest<Variant>.Test(V1,V2,s1+s2);
-      TTest<Variant>.Test(V1,V1,s1+s1);
-      TTest<Variant>.Test(V1,Default(variant),s1+'default');
-      TTest<Variant>.Test(Default(variant),V1,'default'+s1);
+      Write(IntToStr(integer(i2)));
+      OK:= ((not(VarType(i1) in [vrError, vrUnknown, vrEmpty])) and (not(VarType(i2) in [vrError, vrUnknown, vrEmpty])));
+      if (i1 = vrDispatch) then OK:= false;
+      if OK then begin
+        try
+          TTest<Variant>.Test(V1, V2, s1 + s2);
+        except
+          on e: EVariantTypeCastError do
+        {ignore}
+        end;
+        try
+          TTest<Variant>.Test(V1, V1, s1 + s1);
+        except
+          on e: EVariantTypeCastError do
+        {ignore}
+        end;
+        try
+          TTest<Variant>.Test(V1, default (Variant), s1 + 'default');
+        except
+          on e: EVariantTypeCastError do
+        {ignore}
+        end;
+        try
+          TTest<Variant>.Test(default (Variant), V1, 'default' + s1);
+        except
+          on e: EVariantTypeCastError do
+        {ignore}
+        end;
+      end;
     end;
   end;
+end;
+
+class function TTest<T>.SlowEqual(const Left, Right: T): boolean;
+begin
+  Result:= DefEqual.Equals(Left, Right);
+end;
+
+class function TTest<T>.FastEqual(const Left, Right: T): boolean;
+begin
+  Result:= E(Left, Right);
+end;
+
+{ TAlwaysEqual }
+
+function TAlwaysEqual.Equals(a: TObject): boolean;
+begin
+  Result:= true;
+end;
+
+{ TNeverEqual }
+
+function TNeverEqual.Equals(a: TObject): boolean;
+begin
+  Result:= false;
+end;
+
+procedure TestComplex.TestStringMurmurHash3(const TestData: AnsiString);
+begin
+  Assert.AreEqual(PascalMurmurHash3(TestData[1], Length(TestData),0),
+                  MurmurHash3(TestData[1], Length(TestData),0),
+                  'Murmurhash3 not equal with data: '+TestData);
 end;
 
 initialization
