@@ -112,6 +112,7 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <DCC_Inlining>off</DCC_Inlining>
         <DCC_Optimize>true</DCC_Optimize>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_GenerateStackFrames>false</DCC_GenerateStackFrames>
@@ -123,7 +124,6 @@
         <DCC_GenerateStackFrames>false</DCC_GenerateStackFrames>
         <Manifest_File>None</Manifest_File>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <DCC_Optimize>true</DCC_Optimize>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -138,6 +138,8 @@
         <DCCReference Include="..\QuickerSort.pas"/>
         <DCCReference Include="TestQuickerSort.pas"/>
         <DCCReference Include="OriginalSort.pas"/>
+        <DCCReference Include="..\System.Generics.FastDefaults.pas"/>
+        <DCCReference Include="..\FastMath.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -159,21 +161,30 @@
                     <Source Name="MainSource">TestCases.dpr</Source>
                 </Source>
                 <Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k210.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp210.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcboffice2k210.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcbofficexp210.bpl">Embarcadero C++Builder Office XP Servers Package</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment>
-                <DeployFile LocalName="Win64\Debug\TestCases.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win64">
-                        <RemoteName>TestCases.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimulator">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\TestCases.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>TestCases.rsm</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\TestCases.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>TestCases.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

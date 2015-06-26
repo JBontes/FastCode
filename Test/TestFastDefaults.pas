@@ -71,7 +71,6 @@ type
     function Equals(a: TObject): boolean; override;
   end;
 
-
 //Have we covered all types?
 //    tkUnknown        OK  {custom enum}
 //    tkInteger,       OK
@@ -244,31 +243,49 @@ type
     [TestCase('String12', 'aaa,aaa')]
     [TestCase('String13', 'aaa,baa')]
     [TestCase('String14', 'caa,aaa')]
+    [TestCase('String12', 'aaa,aaa')]
+    [TestCase('String13', 'aaa,aab')]
+    [TestCase('String14', 'aac,aaa')]
     [TestCase('String15', ',aaa')]
     [TestCase('String16', 'aaa,')]
     //4 chars fit into a 32bit register
     [TestCase('String17', 'aaaa,aaaa')]
     [TestCase('String18', 'aaaa,baaa')]
     [TestCase('String19', 'caaa,aaaa')]
+    [TestCase('String18', 'aaaa,aaab')]
+    [TestCase('String19', 'aaac,aaaa')]
     [TestCase('String20', ',aaaa')]
     [TestCase('String21', 'aaaa,')]
+    //5Chars overflow a 32bit register
+    [TestCase('String22', 'abcde,abcde')]
+    [TestCase('String23', 'aaaaa,baaaa')]
+    [TestCase('String24', 'caaaa,aaaaa')]
+    [TestCase('String25', 'abcde,abcdZ')]
+    [TestCase('String26', 'abcdZ,abcde')]
+    [TestCase('String27', ',abcde')]
+    [TestCase('String28', 'abcde,')]
     //done with the special cases
     //length dividable by 4
-    [TestCase('String22', 'aalonglonglo,aalonglonglo')]
-    [TestCase('String23', 'aalonglonglo,balonglonglo')]
-    [TestCase('String24', 'calonglonglo,aalonglonglo')]
-    [TestCase('String25', ',aalonglonglo')]
-    [TestCase('String26', 'aalonglonglo,')]
+    [TestCase('String29', 'aalonglonglo,aalonglonglo')]
+    [TestCase('String30', 'aalonglonglo,balonglonglo')]
+    [TestCase('String31', 'calonglonglo,aalonglonglo')]
+    [TestCase('String32', 'aalonglonglo,aalonglonglo')]
+    [TestCase('String33', 'aalonglonglZ,aalonglonglo')]
+    [TestCase('String34', 'aalonglonglo,aalonglonglZ')]
+    [TestCase('String35', ',aalonglonglo')]
+    [TestCase('String36', 'aalonglonglo,')]
     //odd length
-    [TestCase('String27', 'aalonglonglonga,aalonglonglonga')]
-    [TestCase('String28', 'aalonglonglong,balonglonglonga')]
-    [TestCase('String29', 'calonglonglonga,aalonglonglong')]
-    [TestCase('String30', ',aalonglonglonga')]
-    [TestCase('String31', 'aalonglonglonga,')]
+    [TestCase('String37', 'aalonglonglonga,aalonglonglonga')]
+    [TestCase('String38', 'aalonglonglonga,balonglonglonga')]
+    [TestCase('String39', 'calonglonglonga,aalonglonglonga')]
+    [TestCase('String40', 'aalonglonglonga,aalonglonglongZ')]
+    [TestCase('String41', 'aalonglonglongZ,aalonglonglonga')]
+    [TestCase('String42', ',aalonglonglonga')]
+    [TestCase('String43', 'aalonglonglonga,')]
     //mismatched length
-    [TestCase('String32', 'aanga,aalonglonglonga')]
-    [TestCase('String33', 'aalong,balonglonglonga')]
-    [TestCase('String34', 'calonglonglonga,aaglong')]
+    [TestCase('String44', 'aalon,aalonglonglonga')]
+    [TestCase('String45', 'aalong,aalonglonglonga')]
+    [TestCase('String46', 'aalonglonglonga,aaglong')]
     procedure TestString(const L, R: T);
   end;
 
@@ -313,13 +330,9 @@ end;
 
 class constructor TTest<T>.Init;
 begin
-  if (GetTypeKind(T) = tkFloat) and (SizeOf(T) = 6) then begin
-    Def := System.Generics.Defaults.TComparer<T>.Construct(TTest<T>.Real48Comparison);
-    DefEqual:= System.Generics.Defaults.TEqualityComparer<T>.Construct(TTest<T>.Real48Equals,nil);
-  end else begin
-    Def:= System.Generics.Defaults.TComparer<T>.Default;
-    DefEqual:= System.Generics.Defaults.TEqualityComparer<T>.Default;
-  end;
+  Def:= System.Generics.Defaults.TComparer<T>.Default;
+  DefEqual:= System.Generics.Defaults.TEqualityComparer<T>.Default;
+
   F:= FastDefaults.TComparer<T>.Default.Compare;
   Fr:= FastDefaults.TComparer<T>.Default.TestCompareFast;
   E:= FastDefaults.TComparer<T>.Default.Equals;
@@ -482,6 +495,10 @@ var
   a,b: TStr255;
   i: integer;
 begin
+  TTest<TStr255>.Test('aaaaaaaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaaaaab');
+  TTest<TStr255>.Test('aaaaaaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaaaab');
+  TTest<TStr255>.Test('aaaaaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaaab');
+  TTest<TStr255>.Test('aaaaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaab');
   TTest<TStr255>.Test('aaa', 'aaa');
   TTest<TStr255>.Test('bbb', 'ccc');
   TTest<TStr255>.Test('ccc', 'aaa');

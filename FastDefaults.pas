@@ -1,5 +1,5 @@
 (*******************************************************
- Record based Comparers
+ FastDefauts
  A fast and small replacement for the interface
  based comparers available in `System.Generics.Defaults` since D2009.
  This works best in XE7 and above because it depends
@@ -7,7 +7,7 @@
  resolution of types.
  It should compile and run in 2009 and beyond, but the benefits are much less.
 
- Alpha version 0.2, full tested in both Win32 and Win64
+ Alpha version 0.2, fully tested in Win32, Win64 and pure Pascal
 
  (c) Copyright 2015 J. Bontes
  *)
@@ -27,7 +27,7 @@ interface
 uses
   System.SysUtils;
 
-//{$define PurePascal}
+{$define PurePascal}
 
 type
 
@@ -179,8 +179,6 @@ type
 
 
   TComparer<T> = class
-  private
-    FComparer: TComparer<T>;
   public
     class var Default: IComparer<T>;
     class function Construct(const Comparison: TComparison<T>): TComparer<T>;
@@ -230,7 +228,6 @@ function CompareFast(const Left, Right: IInterface): integer; overload; inline;
 function CompareFast(const Left, Right: TObject): integer; overload; inline;
 
 
-
 function Compare_Variant(Left, Right: pointer): integer;
 function BinaryCompare(Left, Right: pointer; Size: integer): integer;
 function FastBinaryCompare(Left, Right: pointer; Size: integer): integer;
@@ -242,19 +239,21 @@ function BinaryCompare8(const Left, Right: UInt64): integer;
 {$ELSE !CPUX64}
 function BinaryCompare8(const Left, Right: pointer): integer;
 {$ENDIF}{$ENDIF}
+function BinaryCompare3(const Left, Right: pointer): integer;
 function Compare_DynArray(Left, Right: pointer; ElementSize: integer): NativeInt;
 function Compare_PSn(const Left, Right: OpenString): integer; inline;
 
   //For testing purposes
 function PascalMurmurHash3(const [ref] HashData; Len, Seed: integer): integer;
-function MurmurHash3(const [ref] HashData; Len: integer; Seed: integer = 0): integer;
+function MurmurHash3(const [ref] HashData; Len: integer; Seed: integer = 0): integer;{$ifdef purepascal}inline;{$endif}
 function BobJenkinsHash(const HashData; Len, Seed: integer): integer; inline;
 
-function CompareStr(const S1, S2: WideString): integer; overload;
-function CompareStr(const S1, S2: string): integer; overload;
-function SameStr(const S1, S2: string): boolean; overload;
-function SameStr(const S1, S2: WideString): boolean; overload;
+function CompareWideStr(const S1, S2: WideString): integer; overload;
+function CompareUnicodeStr(const S1, S2: string): integer; overload;
+function SameUnicodeStr(const S1, S2: string): boolean; overload;
+function SameWideStr(const S1, S2: WideString): boolean; overload;
 function BinaryEquals(Left, Right: pointer; Size: integer): boolean;
+function DynLen(Arr: pointer): NativeInt; inline;
 
 type
   PInt8 = ^Int8;
@@ -284,6 +283,48 @@ uses
 {$ENDIF}
   ;
 
+{ TCompareRec<T> }
+
+class constructor TRec<T>.Init;
+begin
+  TRec<T>.FCompare:= TComparer<T>.Default.Compare;
+end;
+
+class operator TRec<T>.Implicit(const a: TRec<T>): T;
+begin
+  Result:= a.FData;
+end;
+
+class operator TRec<T>.Implicit(const a: T): TRec<T>;
+begin
+  Result.FData:= a;
+end;
+
+class operator TRec<T>.GreaterThan(const L, R: TRec<T>): boolean;
+begin
+  Result:= (FCompare(L,R) > 0);
+end;
+
+class operator TRec<T>.Equal(const L, R: TRec<T>): boolean;
+begin
+  Result:= (FCompare(L,R) > 0);
+end;
+
+class operator TRec<T>.NotEqual(const L, R: TRec<T>): boolean;
+begin
+  Result:= (FCompare(L,R) <> 0);
+end;
+
+class operator TRec<T>.LessThan(const L, R: TRec<T>): boolean;
+begin
+  Result:= (FCompare(L,R) < 0);
+end;
+
+class operator TRec<T>.Explicit(const a: T): TRec<T>;
+begin
+  Result.FData:= a;
+end;
+
 function Compare_Variant(Left, Right: pointer): integer;
 var
   l, r: Variant;
@@ -310,26 +351,27 @@ begin
       varTypeRight:= VarType(r) and varTypeMask;
       if ((varTypeLeft = varUString) or (varTypeRight = varUString)) or
         ((varTypeLeft = varOleStr) or (varTypeRight = varOleStr)) then begin
-        Result:= FastDefaults.CompareStr(UnicodeString(l), UnicodeString(r));
+        Result:= FastDefaults.CompareUnicodeStr(UnicodeString(l), UnicodeString(r));
       end else if (varTypeLeft = varString) or (varTypeRight = varString) then begin
-        Result:= CompareStr(AnsiString(l), AnsiString(r));
+        Result:= CompareWideStr(AnsiString(l), AnsiString(r));
       end else begin
         lAsString:= PVariant(Left)^;
         rAsString:= PVariant(Right)^;
-        Result:= FastDefaults.CompareStr(lAsString, rAsString);
+        Result:= FastDefaults.CompareUnicodeStr(lAsString, rAsString);
       end;
     except // if comparison fails again, compare bytes.
-      Result:= BinaryCompare(Left, Right, SizeOf(Variant));
+      Result:= FastBinaryCompare(Left, Right, SizeOf(Variant));
     end;
   end;
 end;
+
 
 function BinaryCompare4(Left, Right: Cardinal): integer;
 {$IFDEF purepascal}
 var
   i: integer;
 begin
-  Result:= integer(Left > Right) - integer(Left < Right);
+  Result:= (integer(Left > Right) - integer(Left < Right));
 end;
 {$ELSE !PurePascal}
 {$IFDEF CPUX64}
@@ -363,12 +405,18 @@ end;
 {$IFDEF purepascal}
 function BinaryCompare8(const Left, Right: pointer): integer;
 var
+  pl, pr: PByte;
   i: integer;
 begin
-  for i:= 0 to 7 do begin
-    Result:= PByte(Left)[i] - PByte(Right)[i];
+  pl:= Left;
+  pr:= Right;
+  for i := 0 to 7 do begin
+    Result:= pl^ - pr^;
     if Result <> 0 then Exit;
+    Inc(pl);
+    Inc(pr);
   end;
+  Result := 0;
 end;
 {$ELSE !PurePascal}
 {$IFDEF CPUX64}
@@ -414,15 +462,120 @@ end;
 {$ENDIF}
 {$ENDIF !PurePascal}
 
-//Size is not 1,2,4 or 8
-function BinaryCompare(Left, Right: pointer; Size: integer): integer;
-{$IFDEF purepascal}
+function BinaryCompare3(const Left, Right: pointer): integer;
+{$IFDEF PurePascal}
 var
+  pl, pr: PByte;
   i: integer;
 begin
-  for i:= 0 to Size-1 do begin
-    Result:= PByte(Left)[i] - PByte(Right)[i];
+  pl:= Left;
+  pr:= Right;
+  for i := 0 to 2 do begin
+    Result:= pl^ - pr^;
     if Result <> 0 then Exit;
+    Inc(pl);
+    Inc(pr);
+  end;
+  Result := 0;
+end;
+{$ELSE !PurePascal}
+{$IFDEF CPUX64}
+asm  //Left RCX, Right RDX
+  movzx R8,  word ptr [RCX]
+  shl   R8,  16
+  mov   R8b, byte ptr [RCX+2]
+  bswap R8
+  movzx R9,  word ptr [RCX]
+  shl   R9,  16
+  mov   R9b, byte ptr [RCX+2]
+  bswap R9
+  cmp   R8,  R9
+  sbb   EAX, EAX
+  cmp   R9,  R8
+  adc   EAX, 0
+end;
+{$ELSE CPUX86}
+asm
+  push  EBX
+  movzx EBX, word ptr [EAX]
+  shl   EBX, 16
+  mov   BL,  byte ptr [EAX+2]
+  bswap EBX
+  movzx ECX, word ptr [EDX]
+  shl   ECX, 16
+  mov   CL,  byte ptr [EDX+2]
+  bswap ECX
+  cmp   EBX, ECX
+  sbb   EAX, EAX
+  cmp   ECX, EBX
+  adc   EAX, 0
+  pop   EBX
+end;
+{$ENDIF}{$ENDIF}
+
+//Size is not 1,2,3,4 or 8
+function BinaryCompare(Left, Right: pointer; Size: integer): integer;
+{$IFDEF purepascal} // pure pascal
+type
+  TBSwap = record
+    case integer of
+      1: (arr: array[0..SizeOf(NativeInt)-1] of byte);
+      2: (ni: nativeInt);
+      3: (i: integer);
+  end;
+var
+  Same: boolean;
+  i: integer;
+  Lq, Rq: PNativeUInt;
+  Li, Ri: PInteger;
+  SwapL, SwapR: TBSwap;
+label
+  DifferentInteger, DifferentNativeInt;
+begin
+  if (SizeOf(NativeUInt) > SizeOf(Integer)) and (Size < SizeOf(NativeUInt)) then begin
+    Li:= Left;
+    Ri:= Right;
+    for i:= 0 to (Size div SizeOf(integer)) - 1 do begin
+      Same:= Li^ = Ri^;
+      if not(Same) then goto DifferentInteger;
+      Inc(Li);
+      Inc(Ri);
+    end;
+    // Unaligned test for few remaining bytes
+    NativeInt(Li):= NativeInt(Li) + (Size and (SizeOf(integer)- 1)) - SizeOf(integer);
+    NativeInt(Ri):= NativeInt(Ri) + (Size and (SizeOf(integer)- 1)) - SizeOf(integer);
+    if (Li^ = Ri^) then Result:= 0
+    else begin
+DifferentInteger:
+      SwapL.i:= Li^;
+      SwapR.i:= Ri^;
+      for i := 3 downto 0 do begin
+        Result:= SwapL.arr[i] - SwapR.arr[i];
+        if Result <> 0 then exit;
+      end;
+    end;
+  end else begin
+    Lq:= Left;
+    Rq:= Right;
+    for i:= 0 to (Size div SizeOf(NativeUInt)) - 1 do begin
+      Same:= Lq^ = Rq^;
+      if not(Same) then goto DifferentNativeInt;
+      Inc(Lq);
+      Inc(Rq);
+    end;
+    // Unaligned test for few remaining bytes
+    NativeUInt(Lq):= NativeUInt(Lq) + (Size and (SizeOf(NativeUInt)- 1)) - SizeOf(NativeUInt);
+    NativeUInt(Rq):= NativeUInt(Rq) + (Size and (SizeOf(NativeUInt)- 1)) - SizeOf(NativeUInt);
+    if (Lq^ = Rq^) then Result:= 0
+    else begin
+DifferentNativeInt:
+      SwapL.ni:= Lq^;
+      SwapR.ni:= Rq^;
+      for i := SizeOf(NativeInt)-1 downto 0 do begin
+        Result:= SwapL.arr[i] - SwapR.arr[i];
+        if Result <> 0 then exit;
+      end;
+    end;
   end;
 end;
 {$ELSE !PurePascal}
@@ -462,23 +615,40 @@ end;
 {$ENDIF}
 {$ENDIF !PurePascal}
 
-//Cannot be used for comparisons shorter than 4 bytes.
+// Cannot be used for comparisons shorter than 4 bytes.
 function BinaryEquals(Left, Right: pointer; Size: integer): boolean;
-{$IFDEF purepascal} //pure pascal
+{$IFDEF purepascal}
 var
   i: integer;
-  a,b: integer;
+  Lq, Rq: PNativeUInt;
+  Li, Ri: PInteger;
 begin
-  a:= Size shl 2;
-  for i:= 0 to a-1 do begin
-    Result:= (PInteger(Left)[i] = PInteger(Right)[i]);
-    if not(Result) then Exit;
-  end;
-  a:= Size and $3;
-  b:= Size and -4;
-  for i:= 0 to a-1 do begin
-    Result:= (PByte(Left)[b+i] = PByte(Right)[b+i]);
-    if not(Result) then Exit;
+  if (SizeOf(NativeUInt) > SizeOf(Integer)) and (Size < SizeOf(NativeUInt)) then begin
+    Li:= Left;
+    Ri:= Right;
+    for i:= 0 to (Size div SizeOf(integer)) - 1 do begin
+      Result:= Li^ = Ri^;
+      if not(Result) then Exit;
+      Inc(Li);
+      Inc(Ri);
+    end;
+    // Unaligned test for few remaining bytes
+    NativeInt(Li):= NativeInt(Li) + (Size and (SizeOf(integer)- 1)) - SizeOf(integer);
+    NativeInt(Ri):= NativeInt(Ri) + (Size and (SizeOf(integer)- 1)) - SizeOf(integer);
+    Result:= Li^ = Ri^;
+  end else begin
+    Lq:= Left;
+    Rq:= Right;
+    for i:= 0 to (Size div SizeOf(NativeUInt)) - 1 do begin
+      Result:= Lq^ = Rq^;
+      if not(Result) then Exit;
+      Inc(Lq);
+      Inc(Rq);
+    end;
+    // Unaligned test for few remaining bytes
+    NativeUInt(Lq):= NativeUInt(Lq) + (Size and (SizeOf(NativeUInt)- 1)) - SizeOf(NativeUInt);
+    NativeUInt(Rq):= NativeUInt(Rq) + (Size and (SizeOf(NativeUInt)- 1)) - SizeOf(NativeUInt);
+    Result:= Lq^ = Rq^;
   end;
 end;
 {$ELSE !PurePascal}
@@ -654,8 +824,8 @@ end;
 
 function DynLen(Arr: pointer): NativeInt; inline;
 begin
-  if Arr = nil then Exit(0);
-  Result:= PNativeInt(PByte(Arr) - SizeOf(NativeInt))^;
+  if Arr = nil then Result:= 0
+  else Result:= PNativeInt(PByte(Arr) - SizeOf(NativeInt))^;
 end;
 
 function Compare_DynArray(Left, Right: pointer; ElementSize: integer): NativeInt;
@@ -714,9 +884,9 @@ begin
 
   case GetTypeKind(T) of
     //tkWString: Result:= (CompareStr(WideString(l.p), WideString(r.p)));
-    tkWString: Result:= (CompareStr(WideString((@Left)^), WideString((@Right)^)));
-    tkUString: Result:= (FastDefaults.CompareStr(PUnicodeString(@Left)^, PUnicodeString(@Right)^));
-    tkLString: Result:= (CompareStr(PAnsiString(@Left)^, PAnsiString(@Right)^));
+    tkWString: Result:= (CompareWideStr(WideString((@Left)^), WideString((@Right)^)));
+    tkUString: Result:= (FastDefaults.CompareUnicodeStr(PUnicodeString(@Left)^, PUnicodeString(@Right)^));
+    tkLString: Result:= (CompareWideStr(PAnsiString(@Left)^, PAnsiString(@Right)^));
     tkDynArray: Result:= (Compare_DynArray(ppointer(@Left)^, ppointer(@Right)^, ElementSize));
     tkVariant: Result:= (Compare_Variant(@left, @right));
     tkClass, tkClassRef, tkPointer, tkInterface, tkProcedure: Result:= (integer(PNativeUint(@Left)^ > PNativeUint(@Right)^) - integer(PNativeUInt(@Left)^ < PNativeUInt(@Right)^));
@@ -762,7 +932,7 @@ begin
       3: begin
         case GetTypeKind(T) of
           tkString: Result:= (integer(PStr2(@Left)^ > PStr2(@Right)^) - integer(PStr2(@Left)^ < PStr2(@Right)^));
-          else Result:= (BinaryCompare(@Left, @Right, SizeOf(T)));
+          else Result:= (FastBinaryCompare(@Left, @Right, SizeOf(T)));
         end;
       end;
       4: begin
@@ -884,14 +1054,9 @@ begin
   end;
 end;
 
-
 class function IComparer<T>.TestCompareFast(const Left, Right: T): integer;
-//var
-//  l: TCast absolute Left;
-//  r: TCast absolute Right;
 begin
   case GetTypeKind(T) of
-    //tkUnknown: ;
     tkInteger: case SizeOf(T) of
       1: begin
         if Signed then Result:= CompareFast(PInt8(@left)^, PInt8(@Right)^)
@@ -907,7 +1072,6 @@ begin
       end;
     end;
     tkChar: Result:= CompareFast(PAnsiChar(@Left)^, PAnsiChar(@Right)^);
-    //tkEnumeration: ;
     tkFloat: case SizeOf(T) of
       4: Result:= CompareFast(PSingle(@Left)^, PSingle(@Right)^);
       6: Result:= CompareFast(PReal48(@Left)^, PReal48(@Right)^);
@@ -915,34 +1079,25 @@ begin
       10: Result:= CompareFast(PExtended(@Left)^, PExtended(@Right)^);
     end;
     tkString: Result:= CompareFast(PStrn(@Left)^, PStrn(@Right)^);
-    //tkSetim: ;
     tkClass: Result:= CompareFast(TObject(PPointer(@Left)^), TObject(PPointer(@Right)^));
-    //tkMethod: ;
     tkWChar: Result:= CompareFast(PChar(@Left)^, PChar(@Right)^);
     tkLString: Result:= CompareFast(AnsiString(PPointer(@Left)^), AnsiString(PPointer(@Right)^));
     tkWString: Result:= CompareFast(WideString(PPointer(@Left)^), WideString(PPointer(@Right)^));
-    //tkVariant: ;//tkArray: ;//tkRecord: ;
     tkInterface: Result:= CompareFast(IInterface(PPointer(@Left)^), IInterface(PPointer(@Right)^));
     tkInt64: begin
       if Signed then Result:= CompareFast(PInt64(@Left)^, PInt64(@Right)^)
       else Result:= CompareFast(PUInt64(@Left)^, PUInt64(@Right)^);
     end;
-    //tkDynArray:;
     tkUString: Result:= CompareFast(UnicodeString(PPointer(@Left)^), UnicodeString(PPointer(@Right)^));
-    //tkClassRef: ;
     tkPointer: Result:= CompareFast(PPointer(@Left)^, PPointer(@Right)^);
-    //tkProcedure: ;
     else Result:= Compare(Left, Right);
   end;
 end;
 
 {TODO -oJohan -cRewrite : Write special case to string comparison etc.}
 class function IComparer<T>.Equals(const Left, Right: T): boolean;
-//var
-//  l: TCast absolute Left;
-//  r: TCast absolute Right;
 begin
-  if SizeOf(T) = 0  then Result:= true
+  if SizeOf(T) = 0 then Result:= true
   else case GetTypeKind(T) of
     tkString: case SizeOf(T) of
       1: Result:= PByte(@Left)^ = PByte(@Right)^;
@@ -957,9 +1112,9 @@ begin
       8: Result:= (PDouble(@Left)^ = PDouble(@Right)^);
       10: Result:= (PExtended(@Left)^ = PExtended(@Right)^);
     end;
-    tkUString: Result:= FastDefaults.SameStr(UnicodeString(PPointer(@Left)^), UnicodeString(PPointer(@Right)^));
-    tkLString: Result:= SameStr(AnsiString(PPointer(@Left)^), AnsiString(PPointer(@Right)^));
-    tkWString: Result:= FastDefaults.SameStr(WideString(PPointer(@Left)^), WideString(PPointer(@Right)^));
+    tkUString: Result:= FastDefaults.SameUnicodeStr(UnicodeString(PPointer(@Left)^), UnicodeString(PPointer(@Right)^));
+    tkLString: Result:= System.AnsiStrings.SameStr(AnsiString(PPointer(@Left)^), AnsiString(PPointer(@Right)^));
+    tkWString: Result:= FastDefaults.SameWideStr(WideString(PPointer(@Left)^), WideString(PPointer(@Right)^));
     tkDynArray: Result:= (Compare_DynArray(PPointer(@Left)^, PPointer(@Right)^, ElementSize)) = 0;
     tkVariant: Result:= (Compare_Variant(@left, @right)) = 0;
     tkClassRef, tkPointer, tkInterface, tkProcedure: begin
@@ -983,7 +1138,6 @@ end;
 
 class function IComparer<T>.GetHashCode(const Value: T; Seed: integer = 0): integer;
 var
-  V: TCast absolute Value;
   VarStr: string;
 begin
   case GetTypeKind(T) of
@@ -991,25 +1145,25 @@ begin
     tkInteger, tkChar, tkEnumeration, tkSet, tkWChar, tkRecord, tkInt64, tkFloat, tkClass, tkMethod, tkInterface,
       tkClassRef, tkPointer, tkProcedure:
     begin
-      Result:= MurmurHash3(V.nu, SizeOf(T), Seed);
+      Result:= MurmurHash3(NativeInt((@Value)^), SizeOf(T), Seed);
     end;
-    tkString: Result:= MurmurHash3(V.ps[low(string)], Length(V.ps) * SizeOf(V.ps[low(string)]), Seed);
-    tkLString: Result:= MurmurHash3(AnsiString(V.p)[low(string)], Length(AnsiString(V.p)) * SizeOf(AnsiChar), Seed);
+    tkString: Result:= MurmurHash3(ShortString((@Value)^)[low(string)], Length(ShortString((@Value)^)), Seed);
+    tkLString: Result:= MurmurHash3(AnsiString((@Value)^)[low(string)], Length(AnsiString((@Value)^)), Seed);
     tkUString:
-    Result:= MurmurHash3(UnicodeString(V.p)[low(string)], Length(UnicodeString(V.p)) * SizeOf(WideChar), Seed);
-    tkWString: Result:= MurmurHash3(WideString(V.p)[1], Length(WideString(V.p)) * SizeOf(WideChar), Seed);
+    Result:= MurmurHash3(UnicodeString((@Value)^)[low(string)], Length(UnicodeString((@Value)^)) * SizeOf(WideChar), Seed);
+    tkWString: Result:= MurmurHash3(WideString((@Value)^)[1], Length(WideString((@Value)^)) * SizeOf(WideChar), Seed);
     tkVariant: try
-      VarStr:= PVariant(V.p)^;
+      VarStr:= PVariant((@Value)^)^;
       Result:= TComparer<string>.Default.GetHashCode(VarStr, Seed);
     except
-      Result:= MurmurHash3(V.p^, SizeOf(Variant), Seed);
+      Result:= MurmurHash3(pointer((@Value)^)^, SizeOf(Variant), Seed);
     end;
-    tkArray: Result:= MurmurHash3(V.u8, SizeOf(T), Seed);
-    tkDynArray: Result:= MurmurHash3(V.p^, GetTypeData(TypeInfo(T))^.elSize * DynLen(V.p), Seed);
+    tkArray: Result:= MurmurHash3(byte((@Value)^), SizeOf(T), Seed);
+    tkDynArray: Result:= MurmurHash3(pointer((@Value)^)^, GetTypeData(TypeInfo(T))^.elSize * DynLen(pointer((@Value)^)), Seed);
   end;
 end;
 
-function CompareStr(const S1, S2: WideString): integer; overload;
+function CompareWideStr(const S1, S2: WideString): integer; overload;
 //{$ifdef PurePascal}
 var
   i: NativeInt;
@@ -1018,11 +1172,11 @@ begin
   if pointer(S1) = pointer(S2) then Exit(0);
   if pointer(S1) = nil then Exit( -1);
   if pointer(S2) = nil then Exit(1);
-  i:= 0;
+  i:= Low(S1);
   while (true) do begin
-    c1:= S1[i + 1];
-    c2:= S2[i + 1];
-    Result:= byte(c1 > c2) - byte(c1 < c2);
+    c1:= S1[i];
+    c2:= S2[i];
+    Result:= integer(c1 > c2) - integer(c1 < c2);
     if (integer(Result = 0) and integer(c1 <> #0) and integer(c2 <> #0)) = 0 then Exit;
     inc(i);
   end;
@@ -1038,7 +1192,7 @@ end;
 //end;
 //{$endif}{$endif}
 
-function SameStr(const S1, S2: WideString): boolean; overload;
+function SameWideStr(const S1, S2: WideString): boolean; overload;
 {$IFDEF PurePascal}
 const
   Forever = false;
@@ -1047,12 +1201,11 @@ var
 begin
   Result:= pointer(S1) = pointer(S2);
   if Result then Exit;
-  Result:= not((S1 = nil) or (S1 = nil));
-  if Not(Result) then Exit;
-  for i:= 0 to High(Integer) do begin end;
-    Result:= PByte(S1)[i] = PByte(S2)[i];
-    if Result then Exit;
-    if PByte(S1)[i] = 0 then Exit;
+  Result:= not((pointer(S1) = nil) or (pointer(S2) = nil));
+  if not(Result) then Exit;
+  for i:= Low(S1) to High(Integer) do begin
+    Result:= S1[i] = S2[i];
+    if not(Result) or (S1[i] = #0) then Exit;
   end;
 end;
 {$ELSE}
@@ -1126,9 +1279,7 @@ asm
 end;
 {$ENDIF}{$ENDIF}
 
-
-
-function SameStr(const S1, S2: string): boolean;
+function SameUnicodeStr(const S1, S2: string): boolean;
 {$IFDEF PurePascal} inline;
 begin
   Result:= System.SysUtils.SameStr(S1,S2);
@@ -1137,6 +1288,7 @@ end;
 {$IFDEF CPUX64}
 // RCX = S1
 // RDX = S2
+//Because the string is zero-terminated it is always safe to read 2 bytes beyond the last char.
 asm
   .NOFRAME
   cmp  RCX, RDX
@@ -1152,20 +1304,30 @@ asm
   cmp  R9,R8
   jnz @done  //The lengths are different
   mov  R8d,R8d   //zero-out non length parts.
+  add  R8,R8     //WideChar = 2 bytes.
   neg  R8
   //use negative based indexing
   sub  RCX, R8
   sub  RDX, R8
-@compareLoop:
   add  R8,4 //First 2 chars are already done
-  jns @equal //Strings are equal.
-  mov  EAX,[RCX+R8+4]
-  xor  EAX,[RCX+R8+4]
+  jz @Equal
+  mov  EAX,[RCX+R8+4]   //Realign the qword reads
+  xor  EAX,[RDX+R8+4]
+  jnz @done
+@compareLoop:
+  add  R8,8
+  jns @DoTail8
+  mov  RAX,[RCX+R8]
+  xor  RAX,[RDX+R8]
   jz @compareLoop
-  //There is a difference, is it within the legal bounds of the strings?
-  add  R8,4
-  jz  @done
-  and  EAX,$FFFF
+  xor  RAX,RAX  //Not equal
+  ret
+@DoTail8:
+  //mov  R8,-4
+  mov  RAX,[RCX+4-8]
+  xor  RAX,[RDX+4-8]
+  setz AL
+  ret
 @done:
   setz AL
   ret
@@ -1185,26 +1347,23 @@ asm
   js @different  //S2 is nil, S2 is not
 @NoNilStrings:
   //Compare the length and 2st two chars
-  mov  EBX,[EAX]
-  mov  ECX,[EDX]
-  cmp  EBX,ECX
+  mov  ECX,[EAX]
+  cmp  ECX,[EDX]
   jnz @different  //The lengths are different
   mov  EBX,[EAX+4]
   xor  EBX,[EDX+4]
   jnz @different
+  add  ECX, ECX
   neg  ECX
   //use negative based indexing
   sub  EAX, ECX
   sub  EDX, ECX
 @compareLoop:
   add  ECX,4 //First 2 chars are already done
-  jns @equal //Strings are equal.
+  jg @Equal //Strings are equal.
   mov  EBX,[EAX+ECX+4]
   xor  EBX,[EDX+ECX+4]
   jz @compareLoop
-  //There is a difference, is it within the legal bounds of the strings?
-  add  ECX,4
-  jz  @equal
 @different:
   xor  EAX,EAX
   pop  EBX
@@ -1215,8 +1374,7 @@ asm
 end;
 {$ENDIF CPUX64}{$ENDIF PurePascal}
 
-
-function CompareStr(const S1, S2: string): integer;
+function CompareUnicodeStr(const S1, S2: string): integer;
 {$IFDEF PurePascal} inline;
 begin
   Result:= System.SysUtils.CompareStr(S1, S2);
@@ -1343,7 +1501,6 @@ begin
 end;
 
 {$POINTERMATH on}
-
 function PascalMurmurHash3(const [ref] HashData; Len, Seed: integer): integer;
 const
   c1 = $CC9E2D51;
@@ -1406,6 +1563,12 @@ final:
 end;
 
 function MurmurHash3(const [ref] HashData; Len: integer; Seed: integer = 0): integer;
+{$ifdef purepascal}
+inline;
+begin
+  Result:= PascalMurmurHash3(HashData, Len, Seed);
+end;
+{$else}
 const
   c1 = $CC9E2D51;
   c2 = $1B873593;
@@ -1415,56 +1578,6 @@ const
   n = $E6546B64;
   f1 = $85EBCA6B;
   f2 = $C2B2AE35;
-{$IFDEF purepascal}
-var
-  i, Len2: integer;
-  k: cardinal;
-  remaining: cardinal;
-  Data: PCardinal;
-label
-  case1, case2, case3, final;
-begin
-  Result:= Seed;
-  Data:= @HashData;
-  for i:= 0 to (Len shr 2) - 1 do begin
-    k:= Data[i];
-    k:= k * c1;
-    k:= (k shl r1) or (k shr (32 - r1));
-    k:= k * c2;
-    Result:= Result xor k;
-    Result:= (Result shl r2) or (Result shr (32 - r2));
-    Result:= Result * m + n;
-  end; {for i}
-  Len2:= Len;
-  case Len and $3 of
-    1: goto case1;
-    2: goto case2;
-    3: goto case3;
-    else goto final;
-  end;
-case3:
-  dec(Len2);
-  inc(remaining, PByte(Data)[Len2] shl 16);
-case2:
-  dec(Len2);
-  inc(remaining, PByte(Data)[Len2] shl 8);
-case1:
-  dec(Len2);
-  inc(remaining, PByte(Data)[Len2]);
-  remaining:= remaining * c1;
-  remaining:= (remaining shl r1) or (remaining shr (32 - r1));
-  remaining:= remaining * c2;
-  Result:= Result xor remaining;
-final:
-  Result:= Result xor Len;
-
-  Result:= Result xor (Result shr 16);
-  Result:= Result * f1;
-  Result:= Result xor (Result shr 13);
-  Result:= Result * f2;
-  Result:= Result xor (Result shr 16);
-end;
-{$ELSE}
 {$REGION 'asm'}
 {$IFDEF CPUx86}
 asm
@@ -1658,7 +1771,7 @@ end;
 
 function CompareFast(const Left, Right: pointer): integer;
 begin
-  Result:= integer(NativeUInt(Left) > NativeUInt(Right)) - integer(NativeUInt(Left) < NativeUInt(Right));
+  Result:= (integer(NativeUInt(Left) > NativeUInt(Right)) - integer(NativeUInt(Left) < NativeUInt(Right)));
 end;
 
 function CompareFast(const Left, Right: UTF8String): integer;
@@ -1673,12 +1786,12 @@ end;
 
 function CompareFast(const Left, Right: WideString): integer;
 begin
-  Result:= FastDefaults.CompareStr(Left, Right);
+  Result:= FastDefaults.CompareWideStr(Left, Right);
 end;
 
 function CompareFast(const Left, Right: UnicodeString): integer;
 begin
-  Result:= FastDefaults.CompareStr(Left, Right);
+  Result:= FastDefaults.CompareUnicodeStr(Left, Right);
 end;
 
 function CompareFast(const Left, Right: AnsiString): integer;
@@ -1693,52 +1806,52 @@ end;
 
 function CompareFast(const Left, Right: bytebool): integer;
 begin
-  Result:= byte(byte(Left) <> 0) - byte(byte(Right) <> 0);
+  Result:= integer(byte(Left) <> 0) - integer(byte(Right) <> 0);
 end;
 
 function CompareFast(const Left, Right: longbool): integer;
 begin
-  Result:= byte(integer(Left) <> 0) - byte(integer(Right) <> 0);
+  Result:= integer(integer(Left) <> 0) - integer(integer(Right) <> 0);
 end;
 
 function CompareFast(const Left, Right: wordbool): integer;
 begin
-  Result:= byte(integer(Left) <> 0) - byte(integer(Right) <> 0);
+  Result:= integer(integer(Left) <> 0) - integer(integer(Right) <> 0);
 end;
 
 function CompareFast(const Left, Right: boolean): integer;
 begin
-  Result:= byte(byte(Left) <> 0) - byte(byte(Right) <> 0);
+  Result:= integer(byte(Left) <> 0) - integer(byte(Right) <> 0);
 end;
 
 function CompareFast(const Left, Right: Currency): integer;
 begin
-  Result:= byte(Left > Right) - byte(Left < Right);
+  Result:= integer(Left > Right) - integer(Left < Right);
 end;
 
 function CompareFast(const Left, Right: Comp): integer;
 begin
-  Result:= byte(Left > Right) - byte(Left < Right);
+  Result:= integer(Left > Right) - integer(Left < Right);
 end;
 
 function CompareFast(const Left, Right: extended): integer;
 begin
-  Result:= byte(Left > Right) - byte(Left < Right);
+  Result:= integer(Left > Right) - integer(Left < Right);
 end;
 
 function CompareFast(const Left, Right: double): integer;
 begin
-  Result:= byte(Left > Right) - byte(Left < Right);
+  Result:= integer(Left > Right) - integer(Left < Right);
 end;
 
 function CompareFast(const Left, Right: Real48): integer;
 begin
-  Result:= byte(Left > Right) - byte(Left < Right);
+  Result:= integer(Left > Right) - integer(Left < Right);
 end;
 
 function CompareFast(const Left, Right: single): integer;
 begin
-  Result:= byte(Left > Right) - byte(Left < Right);
+  Result:= integer(Left > Right) - integer(Left < Right);
 end;
 
 function CompareFast(const Left, Right: UCS4Char): integer;
@@ -1758,22 +1871,22 @@ end;
 
 function CompareFast(const Left, Right: NativeUInt): integer;
 begin
-  Result:= byte(Left > Right) - byte(Left < Right);
+  Result:= integer(Left > Right) - integer(Left < Right);
 end;
 
 function CompareFast(const Left, Right: NativeInt): integer;
 begin
-  Result:= byte(Left > Right) - byte(Left < Right);
+  Result:= integer(Left > Right) - integer(Left < Right);
 end;
 
 function CompareFast(const Left, Right: Int64): integer;
 begin
-  Result:= byte(Left > Right) - byte(Left < Right);
+  Result:= integer(Left > Right) - integer(Left < Right);
 end;
 
 function CompareFast(const Left, Right: UInt64): integer;
 begin
-  Result:= byte(Left > Right) - byte(Left < Right);
+  Result:= integer(Left > Right) - integer(Left < Right);
 end;
 
 function CompareFast(const Left, Right: integer): integer;
@@ -1783,7 +1896,7 @@ end;
 
 function CompareFast(const Left, Right: cardinal): integer;
 begin
-  Result:= byte(Left > Right) - byte(Left < Right);
+  Result:= integer(Left > Right) - integer(Left < Right);
 end;
 
 function CompareFast(const Left, Right: int16): integer;
@@ -1834,48 +1947,6 @@ end;
 function TDelegatedComparer<T>.Compare(const Left, Right: T): Integer;
 begin
   Result:= FCompare(Left, Right);
-end;
-
-{ TCompareRec<T> }
-
-class constructor TRec<T>.Init;
-begin
-  TRec<T>.FCompare:= TComparer<T>.Default.Compare;
-end;
-
-class operator TRec<T>.Implicit(const a: TRec<T>): T;
-begin
-  Result:= a.FData;
-end;
-
-class operator TRec<T>.Implicit(const a: T): TRec<T>;
-begin
-  Result.FData:= a;
-end;
-
-class operator TRec<T>.GreaterThan(const L, R: TRec<T>): boolean;
-begin
-  Result:= (FCompare(L,R) > 0);
-end;
-
-class operator TRec<T>.Equal(const L, R: TRec<T>): boolean;
-begin
-  Result:= (FCompare(L,R) > 0);
-end;
-
-class operator TRec<T>.NotEqual(const L, R: TRec<T>): boolean;
-begin
-  Result:= (FCompare(L,R) <> 0);
-end;
-
-class operator TRec<T>.LessThan(const L, R: TRec<T>): boolean;
-begin
-  Result:= (FCompare(L,R) < 0);
-end;
-
-class operator TRec<T>.Explicit(const a: T): TRec<T>;
-begin
-  Result.FData:= a;
 end;
 
 end.

@@ -14,7 +14,9 @@ uses
   TestFastDefaults,
   QuickerSort in '..\QuickerSort.pas',
   TestQuickerSort in 'TestQuickerSort.pas',
-  OriginalSort in 'OriginalSort.pas';
+  OriginalSort in 'OriginalSort.pas',
+  System.Generics.FastDefaults in '..\System.Generics.FastDefaults.pas',
+  FastMath in '..\FastMath.pas';
 
 // in 'TestFastDefaults.pas';
 var
