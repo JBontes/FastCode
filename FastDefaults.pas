@@ -27,7 +27,7 @@ interface
 uses
   System.SysUtils;
 
-{$define PurePascal}
+//{$define PurePascal}
 
 type
 
@@ -1512,9 +1512,9 @@ const
   f1 = $85EBCA6B;
   f2 = $C2B2AE35;
 var
-  i, Len2: integer;
+  i: NativeInt;
+  Len1, Len2: integer;
   k: integer;
-  remaining: integer;
   Data: PCardinal;
 label case1, case2, case3, final;
 type
@@ -1522,16 +1522,17 @@ type
 begin
   Result:= Seed;
   Data:= @HashData;
-  for i:= 0 to (Len shr 2) - 1 do begin
+  Len1:= Len shr 2;
+  for i:= 0 to len1 - 1 do begin
     k:= Data[i];
     k:= k * integer(c1);
     k:= (k shl r1) or (k shr (32 - r1));
     k:= k * c2;
     Result:= Result xor k;
     Result:= (Result shl r2) or (Result shr (32 - r2));
-    Result:= Result * m + integer(n);
+    Result:= (Result * m + n);
   end; {for i}
-  remaining:= 0;
+  k:= 0;
   Len2:= Len;
   case Len and $3 of
     1: goto case1;
@@ -1541,17 +1542,17 @@ begin
   end;
 case3:
   dec(Len2);
-  inc(remaining, PByte(Data)[Len2] shl 16);
+  inc(k, PByte(Data)[Len2] shl 16);
 case2:
   dec(Len2);
-  inc(remaining, PByte(Data)[Len2] shl 8);
+  inc(k, PByte(Data)[Len2] shl 8);
 case1:
   dec(Len2);
-  inc(remaining, PByte(Data)[Len2]);
-  remaining:= remaining * integer(c1);
-  remaining:= (remaining shl r1) or (remaining shr (32 - r1));
-  remaining:= remaining * c2;
-  Result:= Result xor remaining;
+  inc(k, PByte(Data)[Len2]);
+  k:= k * integer(c1);
+  k:= (k shl r1) or (k shr (32 - r1));
+  k:= k * c2;
+  Result:= Result xor k;
 final:
   Result:= Result xor Len;
 

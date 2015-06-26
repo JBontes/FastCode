@@ -186,6 +186,8 @@ type
     [TestCase ('Murmurhash9', 'testtesttest12')]
     [TestCase ('Murmurhash10', 'testtesttest123')]
     procedure TestStringMurmurHash3(const TestData: AnsiString);
+    [Test]
+    procedure TestLongStringMurmurHash3;
   end;
 
   [TestFixture]
@@ -1272,6 +1274,24 @@ begin
                   MurmurHash3(TestData[1], Length(TestData),0),
                   'Murmurhash3 not equal with data: '+TestData);
 end;
+
+procedure TestComplex.TestLongStringMurmurHash3;
+const
+  Len = 1000 * 1000;
+var
+  S: AnsiString;
+  i: integer;
+begin
+  SetLength(S, len);
+  for i := Low(s) to Len do begin
+    S[i]:= AnsiChar(Chr(Random(200+32)));
+  end;
+  Assert.AreNotEqual(PascalMurmurHash3(S[1], Len,0),
+                  MurmurHash3(S[1], Len,0),
+                  'Murmurhash3 not equal with data: '+S);
+end;
+
+
 
 initialization
   //Floats
