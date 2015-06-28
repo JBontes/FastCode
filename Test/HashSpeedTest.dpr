@@ -21,7 +21,7 @@ var
   r: AnsiChar;
 begin
   for i := Low(HashTest) to High(HashTest) do begin
-    len:= Random(3000)+3;
+    len:= Random(30)+3;
     SetLength(HashTest[i],Len);
     for j := 1 to len do begin
       r:= AnsiChar(Chr(Random(200)+50));
@@ -42,7 +42,7 @@ begin
     Timer:= TStopWatch.StartNew;
     PrevCRC:= 0;
     for i:= Low(HashTest) to High(HashTest) do begin
-      PrevCrc:= crc32cfast(PrevCRC, PAnsiChar(pointer(HashTest[i])), Length(HashTest));
+      PrevCrc:= crc32cfast(PrevCRC, PAnsiChar(pointer(HashTest[i])), Length(HashTest[i]));
     end;
     Timer.Stop;
     WriteLn(Format('Crc32 took: %d millisec = %d ticks ',[Timer.ElapsedMilliseconds, Timer.ElapsedTicks]));
