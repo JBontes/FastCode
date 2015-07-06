@@ -1,52 +1,69 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<test-results name="C:\borland\FastCode\Test\Win32\Debug\TestCases.exe" total="302" errors="0" failures="0" ignored="0" inconclusive="0" not-run="0" skipped="0" invalid="0" date="2015-06-24" time="2.589">
+<test-results name="C:\borland\FastCode\Test\Win32\Debug\TestCases.exe" total="289" errors="0" failures="0" ignored="0" inconclusive="0" not-run="0" skipped="0" invalid="0" date="2015-07-06" time="2.211">
   <environment nunit-version="DUnitX" clr-version="2.0.0.0" os-version="6.1.0.0" platform="Windows" cwd="c:\test" machine-name="mymachine" user="vincent" user-domain="finalbuilder.com"  />
   <culture-info current-culture="en" current-uiculture="en" />
-  <test-suite type="Assembly" name="TestCases.exe" executed="true" result="Success" success="True" time="2.589" asserts="0">
+  <test-suite type="Assembly" name="TestCases.exe" executed="true" result="Success" success="True" time="2.211" asserts="0">
     <results>
-        <test-suite type="Namespace" name="TestFastDefaults" executed="true" result="Success" success="True" time="0.281" asserts="0" >
+        <test-suite type="Namespace" name="TestFastDefaults" executed="true" result="Success" success="True" time="0.030" asserts="0" >
           <results>
-              <test-suite type="Fixture" name="RawByteString&gt;" executed="True" result="Success" success="True" time="0.281" >
+              <test-suite type="Fixture" name="Extended&gt;" executed="True" result="Success" success="True" time="0.030" >
                 <results>
-                  <test-case name="TestString.String1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String7" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String8" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String9" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String10" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String11" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String12" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String13" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String14" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String15" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String16" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String17" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String19" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-                  <test-case name="TestString.String20" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String21" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String22" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String23" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-                  <test-case name="TestString.String24" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String25" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String26" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String27" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String28" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String29" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String30" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String31" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String32" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String33" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-                  <test-case name="TestString.String34" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                  <test-case name="TestFloat.Float 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                  <test-case name="TestFloat.Float 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                  <test-case name="TestFloat.Float 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                  <test-case name="TestFloat.Float 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                  <test-case name="TestFloat.Float 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                  <test-case name="TestFloat.Float 6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
                 </results>
               </test-suite>
           </results>
         </test-suite>
-        <test-suite type="Fixture" name="Single&gt;" executed="True" result="Success" success="True" time="0.049" >
+        <test-suite type="Fixture" name="RawByteString&gt;" executed="True" result="Success" success="True" time="0.290" >
+          <results>
+            <test-case name="TestString.String17" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String19" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String19" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String20" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String21" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String22" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String23" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String24" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String25" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String26" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String27" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String28" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+            <test-case name="TestString.String29" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String30" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String31" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String32" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String33" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String34" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String35" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String36" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String37" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String38" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String39" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String40" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String41" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String42" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String43" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String44" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+            <test-case name="TestString.String45" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String46" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="SmallInt&gt;" executed="True" result="Success" success="True" time="0.020" >
+          <results>
+            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="Comp&gt;" executed="True" result="Success" success="True" time="0.008" >
           <results>
             <test-case name="TestFloat.Float 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestFloat.Float 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
@@ -56,9 +73,145 @@
             <test-case name="TestFloat.Float 6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
           </results>
         </test-suite>
-        <test-suite type="Fixture" name="AnsiChar&gt;" executed="True" result="Success" success="True" time="0.011" >
+        <test-suite type="Fixture" name="Double&gt;" executed="True" result="Success" success="True" time="0.020" >
           <results>
-            <test-case name="TestChar.Char 1" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+            <test-case name="TestFloat.Float 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestFloat.Float 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestFloat.Float 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestFloat.Float 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestFloat.Float 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestFloat.Float 6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="ShortInt&gt;" executed="True" result="Success" success="True" time="0.023" >
+          <results>
+            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="Int64&gt;" executed="True" result="Success" success="True" time="0.029" >
+          <results>
+            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="Integer&gt;" executed="True" result="Success" success="True" time="0.022" >
+          <results>
+            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="UTF8String&gt;" executed="True" result="Success" success="True" time="0.149" >
+          <results>
+            <test-case name="TestString.String17" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String19" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String19" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String20" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String21" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String22" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String23" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String24" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String25" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String26" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String27" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String28" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String29" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String30" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String31" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String32" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String33" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String34" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String35" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String36" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String37" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String38" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String39" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String40" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String41" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String42" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String43" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String44" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String45" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String46" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="Word&gt;" executed="True" result="Success" success="True" time="0.022" >
+          <results>
+            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="Cardinal&gt;" executed="True" result="Success" success="True" time="0.022" >
+          <results>
+            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="UInt64&gt;" executed="True" result="Success" success="True" time="0.028" >
+          <results>
+            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="AnsiString&gt;" executed="True" result="Success" success="True" time="0.133" >
+          <results>
+            <test-case name="TestString.String17" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String19" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String19" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String20" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String21" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String22" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String23" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String24" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String25" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String26" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String27" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String28" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String29" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String30" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String31" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String32" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String33" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String34" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String35" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String36" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String37" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String38" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String39" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String40" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String41" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String42" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String43" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String44" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String45" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String46" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="AnsiChar&gt;" executed="True" result="Success" success="True" time="0.029" >
+          <results>
+            <test-case name="TestChar.Char 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestChar.Char 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestChar.Char 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestChar.Char 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
@@ -66,150 +219,7 @@
             <test-case name="TestChar.Char 6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
           </results>
         </test-suite>
-        <test-suite type="Fixture" name="Extended&gt;" executed="True" result="Success" success="True" time="0.011" >
-          <results>
-            <test-case name="TestFloat.Float 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 5" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestFloat.Float 6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="SmallInt&gt;" executed="True" result="Success" success="True" time="0.034" >
-          <results>
-            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="Byte&gt;" executed="True" result="Success" success="True" time="0.026" >
-          <results>
-            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Namespace" name="TestQuickerSort" executed="true" result="Success" success="True" time="0.032" asserts="0" >
-          <results>
-              <test-suite type="Fixture" name="TTestSort" executed="True" result="Success" success="True" time="0.032" >
-                <results>
-                  <test-case name="TestSortIntegerRandom.RandomIntSort 5" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-                  <test-case name="TestSortIntegerRandom.RandomIntSort 4" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-                  <test-case name="TestSortIntegerRandom.RandomIntSort 1" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-                  <test-case name="TestSortIntegerRandom.RandomIntSort 2" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-                  <test-case name="TestSortIntegerRandom.RandomIntSort 3" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-                </results>
-              </test-suite>
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="Cardinal&gt;" executed="True" result="Success" success="True" time="0.021" >
-          <results>
-            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="Int64&gt;" executed="True" result="Success" success="True" time="0.024" >
-          <results>
-            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="Word&gt;" executed="True" result="Success" success="True" time="0.026" >
-          <results>
-            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="Comp&gt;" executed="True" result="Success" success="True" time="0.030" >
-          <results>
-            <test-case name="TestFloat.Float 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 4" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestFloat.Float 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="AnsiString&gt;" executed="True" result="Success" success="True" time="0.154" >
-          <results>
-            <test-case name="TestString.String1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String7" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String8" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String9" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String10" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String11" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String12" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String13" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String14" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String15" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String16" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String17" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String19" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String20" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String21" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String22" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String23" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String24" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String25" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String26" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String27" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String28" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String29" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String30" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String31" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String32" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String33" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String34" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="Integer&gt;" executed="True" result="Success" success="True" time="0.023" >
-          <results>
-            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="ShortInt&gt;" executed="True" result="Success" success="True" time="0.028" >
-          <results>
-            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="UInt64&gt;" executed="True" result="Success" success="True" time="0.021" >
-          <results>
-            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="Currency&gt;" executed="True" result="Success" success="True" time="0.031" >
+        <test-suite type="Fixture" name="Single&gt;" executed="True" result="Success" success="True" time="0.030" >
           <results>
             <test-case name="TestFloat.Float 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestFloat.Float 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
@@ -219,77 +229,15 @@
             <test-case name="TestFloat.Float 6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
           </results>
         </test-suite>
-        <test-suite type="Fixture" name="string&gt;" executed="True" result="Success" success="True" time="0.143" >
+        <test-suite type="Fixture" name="string&gt;" executed="True" result="Success" success="True" time="0.135" >
           <results>
-            <test-case name="TestString.String1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String2" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestString.String3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String7" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String8" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String9" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String10" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String11" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String12" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String13" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String14" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String15" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String16" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String17" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String19" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String20" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String21" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String22" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String23" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String24" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String25" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String26" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String27" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String28" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String29" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String30" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String31" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String32" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String33" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String34" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="Double&gt;" executed="True" result="Success" success="True" time="0.022" >
-          <results>
-            <test-case name="TestFloat.Float 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestFloat.Float 6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="WideString&gt;" executed="True" result="Success" success="True" time="0.160" >
-          <results>
-            <test-case name="TestString.String1" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestString.String2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String4" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestString.String5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String7" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String8" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String9" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String10" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String11" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String12" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String13" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String14" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String15" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String16" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String17" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.001" asserts="0" />
             <test-case name="TestString.String19" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String20" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String21" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String21" executed="True" result="Success" success="True" time="0.001" asserts="0" />
             <test-case name="TestString.String22" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String23" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String24" executed="True" result="Success" success="True" time="0.000" asserts="0" />
@@ -303,92 +251,31 @@
             <test-case name="TestString.String32" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String33" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String34" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String35" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String36" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String37" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String38" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String39" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String40" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String41" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String42" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String43" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String44" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String45" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String46" executed="True" result="Success" success="True" time="0.000" asserts="0" />
           </results>
         </test-suite>
-        <test-suite type="Fixture" name="Char&gt;" executed="True" result="Success" success="True" time="0.026" >
+        <test-suite type="Fixture" name="WideString&gt;" executed="True" result="Success" success="True" time="0.135" >
           <results>
-            <test-case name="TestChar.Char 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestChar.Char 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestChar.Char 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestChar.Char 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestChar.Char 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestChar.Char 6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="TestComplex" executed="True" result="Success" success="True" time="1.269" >
-          <results>
-            <test-case name="TestString1" executed="True" result="Success" success="True" time="0.073" asserts="0" />
-            <test-case name="TestString2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString255" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestReal48" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestEmptyRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestByteRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestWordRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestIntRec" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestEightRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestOddRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestNormalRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestManagedRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestBigRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestEnums.Normal enum 1" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestEnums.Normal enum 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestEnums.Normal enum 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestSets" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestClass" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestClassRef" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestPointer" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestInterface" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestTByteArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestTWordArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestTIntArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestTBigArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestTRecArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestTDynByteArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestTDynWordArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestTDynIntArray" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestTDynBigArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestTDynRecArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestMethod" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestProcedure" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestVariant" executed="True" result="Success" success="True" time="1.079" asserts="0" />
-            <test-case name="TestStringMurmurHash3.Murmurhash1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestStringMurmurHash3.Murmurhash2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestStringMurmurHash3.Murmurhash3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestStringMurmurHash3.Murmurhash4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestStringMurmurHash3.Murmurhash5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestStringMurmurHash3.Murmurhash6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestStringMurmurHash3.Murmurhash7" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestStringMurmurHash3.Murmurhash8" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestStringMurmurHash3.Murmurhash9" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestStringMurmurHash3.Murmurhash10" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-          </results>
-        </test-suite>
-        <test-suite type="Fixture" name="UTF8String&gt;" executed="True" result="Success" success="True" time="0.156" >
-          <results>
-            <test-case name="TestString.String1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String2" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestString.String3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String6" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestString.String7" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String8" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String9" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String10" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String11" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String12" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String13" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String14" executed="True" result="Success" success="True" time="0.001" asserts="0" />
-            <test-case name="TestString.String15" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String16" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String17" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String17" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+            <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String19" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String18" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String19" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String20" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String21" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String22" executed="True" result="Success" success="True" time="0.000" asserts="0" />
-            <test-case name="TestString.String23" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+            <test-case name="TestString.String23" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String24" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String25" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String26" executed="True" result="Success" success="True" time="0.000" asserts="0" />
@@ -400,6 +287,106 @@
             <test-case name="TestString.String32" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String33" executed="True" result="Success" success="True" time="0.000" asserts="0" />
             <test-case name="TestString.String34" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String35" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String36" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String37" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String38" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String39" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String40" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String41" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String42" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String43" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String44" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String45" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestString.String46" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="Char&gt;" executed="True" result="Success" success="True" time="0.021" >
+          <results>
+            <test-case name="TestChar.Char 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestChar.Char 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestChar.Char 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestChar.Char 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestChar.Char 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestChar.Char 6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="TestComplex" executed="True" result="Success" success="True" time="0.980" >
+          <results>
+            <test-case name="TestReal48" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestEmptyRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestByteRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestWordRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestIntRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestEightRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestOddRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestNormalRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestManagedRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestBigRec" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestEnums.Normal enum 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestEnums.Normal enum 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestEnums.Normal enum 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestSets" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+            <test-case name="TestClass" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestClassRef" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestPointer" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInterface" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestTByteArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestTWordArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestTIntArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestTBigArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestTRecArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestDynByteArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestDynWordArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestDynIntArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestDynBigArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestDynRecArray" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestMethod" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestProcedure" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+            <test-case name="TestVariant" executed="True" result="Success" success="True" time="0.822" asserts="0" />
+            <test-case name="TestStringMurmurHash3.Murmurhash1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestStringMurmurHash3.Murmurhash2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestStringMurmurHash3.Murmurhash3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestStringMurmurHash3.Murmurhash4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestStringMurmurHash3.Murmurhash5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestStringMurmurHash3.Murmurhash6" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestStringMurmurHash3.Murmurhash7" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestStringMurmurHash3.Murmurhash8" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestStringMurmurHash3.Murmurhash9" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestStringMurmurHash3.Murmurhash10" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestLongStringMurmurHash3" executed="True" result="Success" success="True" time="0.013" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="Currency&gt;" executed="True" result="Success" success="True" time="0.015" >
+          <results>
+            <test-case name="TestFloat.Float 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestFloat.Float 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestFloat.Float 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestFloat.Float 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestFloat.Float 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestFloat.Float 6" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Fixture" name="Byte&gt;" executed="True" result="Success" success="True" time="0.021" >
+          <results>
+            <test-case name="TestInt.Integer 1" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 2" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 4" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+            <test-case name="TestInt.Integer 5" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+          </results>
+        </test-suite>
+        <test-suite type="Namespace" name="TestQuickerSort" executed="true" result="Success" success="True" time="0.041" asserts="0" >
+          <results>
+              <test-suite type="Fixture" name="TTestSort" executed="True" result="Success" success="True" time="0.041" >
+                <results>
+                  <test-case name="TestSortIntegerRandom.RandomIntSort 5" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+                  <test-case name="TestSortIntegerRandom.RandomIntSort 4" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+                  <test-case name="TestSortIntegerRandom.RandomIntSort 1" executed="True" result="Success" success="True" time="0.002" asserts="0" />
+                  <test-case name="TestSortIntegerRandom.RandomIntSort 2" executed="True" result="Success" success="True" time="0.001" asserts="0" />
+                  <test-case name="TestSortIntegerRandom.RandomIntSort 3" executed="True" result="Success" success="True" time="0.000" asserts="0" />
+                </results>
+              </test-suite>
           </results>
         </test-suite>
     </results>

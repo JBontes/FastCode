@@ -26,7 +26,6 @@ type
     class procedure QuickSortOld<T>(var Values: array of T; const Comparer: IComparer<T>;L, R: Integer); static;
     //class procedure QuickSort3<T>(var a: array of T; L, R: Integer); static;
     class procedure QuickSort<T>(var Values: array of T; L, R: Integer); static;
-    class procedure BubbleSort<T>(var Values: array of T; const Compare: TComparison<T>; L, R: Integer); static;
     class procedure DualPivotQuicksort<T>(var a: array of T; const Compare: TComparison<T>;
       Left, Right, divider: Integer); static;
     class procedure InsertionSort<T>(var Values: array of T; L, R: Integer); static;
@@ -313,29 +312,6 @@ begin
     //End; {for}
     Inc(Lo);
   end;
-end;
-
-
-
-class procedure TArrayHelper.BubbleSort<T>(var Values: array of T; const Compare: TComparison<T>; L, R: Integer);
-var
-  n, newn: integer;
-  i: integer;
-  Temp: T;
-begin
-  n:= (R - L) + 1;
-  repeat
-    newn:= L;
-    for I:= L+1 to L + n - 1 do begin
-      if (TComparer<T>.Default.Compare(Values[I - 1], Values[I]) > 0) then begin
-        temp:= Values[I - 1];
-        Values[I - 1]:= Values[I];
-        Values[I]:= temp; //swap(A[i-1], A[i])
-        newn:= I;
-      end;
-    end;
-    n:= (newn - L)
-  until (n = 0);
 end;
 
 class procedure TArrayHelper.DualPivotQuicksort<T>(var a: array of T; const Compare: TComparison<T>;

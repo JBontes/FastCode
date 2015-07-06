@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils;
 
-
+//{$define purepascal}
 
 function CompareFast(const Left, Right: byte): integer; overload; inline;
 function CompareFast(const Left, Right: int8): integer; overload; inline;
@@ -46,11 +46,11 @@ function FastBinaryCompare(const [ref] Left, Right; Size: integer): integer;
 function BinaryCompare4(const Left, Right: Cardinal): integer;
 {$IFDEF purepascal}
 function BinaryCompare8(const Left, Right: pointer): integer;
-{$ELSE !purepascal}{$IFDEF CPUX64}
+{$ELSEIF DEFINED(CPUX64)}
 function BinaryCompare8(const Left, Right: UInt64): integer;
 {$ELSE !CPUX64}
 function BinaryCompare8(const Left, Right: pointer): integer;
-{$ENDIF}{$ENDIF}
+{$ENDIF}
 function BinaryCompare3(const Left, Right: pointer): integer;
 function Compare_DynArray(const Left, Right: pointer; ElementSize: integer): NativeInt;
 function Compare_PSn(const [ref] Left, Right: OpenString): integer; {$ifdef purepascal}inline;{$else}{$ifndef CPUX64}inline;{$endif}{$endif}
@@ -156,7 +156,6 @@ asm
 end;
 {$ENDIF}
 {$ENDIF !PurePascal}
-
 
 {$IFDEF purepascal}
 function BinaryCompare8(const Left, Right: pointer): integer;
@@ -288,56 +287,77 @@ var
 label
   DifferentInteger, DifferentNativeInt;
 begin
-  if (SizeOf(NativeUInt) > SizeOf(Integer)) and (Size < SizeOf(NativeUInt)) then begin
-    Li:= Left;
-    Ri:= Right;
-    for i:= 0 to (Size div SizeOf(integer)) - 1 do begin
-      Same:= Li^ = Ri^;
-      if not(Same) then goto DifferentInteger;
-      Inc(Li);
-      Inc(Ri);
-    end;
-    // Unaligned test for few remaining bytes
-    NativeInt(Li):= NativeInt(Li) + (Size and (SizeOf(integer)- 1)) - SizeOf(integer);
-    NativeInt(Ri):= NativeInt(Ri) + (Size and (SizeOf(integer)- 1)) - SizeOf(integer);
-    if (Li^ = Ri^) then Result:= 0
-    else begin
-DifferentInteger:
-      SwapL.i:= Li^;
-      SwapR.i:= Ri^;
-      for i := 3 downto 0 do begin
-        Result:= SwapL.arr[i] - SwapR.arr[i];
+  if (@Left = @Right) then Exit(0)
+  else if @Left = nil then Exit(-1)
+  else if @Right = nil then Exit(1);
+  case Size of
+    0: Result:= 0;
+    1: Result:= PByte(@Left)^ - PByte(@Right)^;
+    2,3: begin
+      for i := 0 to Size-1 do begin
+        Result:= PByte(@Left)[i] - PByte(@Right)[i];
         if Result <> 0 then exit;
       end;
-    end;
-  end else begin
-    Lq:= Left;
-    Rq:= Right;
-    for i:= 0 to (Size div SizeOf(NativeUInt)) - 1 do begin
-      Same:= Lq^ = Rq^;
-      if not(Same) then goto DifferentNativeInt;
-      Inc(Lq);
-      Inc(Rq);
-    end;
-    // Unaligned test for few remaining bytes
-    NativeUInt(Lq):= NativeUInt(Lq) + (Size and (SizeOf(NativeUInt)- 1)) - SizeOf(NativeUInt);
-    NativeUInt(Rq):= NativeUInt(Rq) + (Size and (SizeOf(NativeUInt)- 1)) - SizeOf(NativeUInt);
-    if (Lq^ = Rq^) then Result:= 0
+    end
     else begin
-DifferentNativeInt:
-      SwapL.ni:= Lq^;
-      SwapR.ni:= Rq^;
-      for i := SizeOf(NativeInt)-1 downto 0 do begin
-        Result:= SwapL.arr[i] - SwapR.arr[i];
-        if Result <> 0 then exit;
-      end;
-    end;
-  end;
+      if (SizeOf(NativeUInt) > SizeOf(integer)) and (Size < SizeOf(NativeUInt)) then begin
+        Li:= @Left;
+        Ri:= @Right;
+
+        for i:= 0 to (Size div SizeOf(integer)) - 1 do begin
+          Same:= Li^ = Ri^;
+          if not(Same) then goto DifferentInteger;
+          Inc(Li);
+          Inc(Ri);
+        end;
+        // Unaligned test for few remaining bytes
+        NativeInt(Li):= NativeInt(Li) + (Size and (SizeOf(integer)- 1)) - SizeOf(integer);
+        NativeInt(Ri):= NativeInt(Ri) + (Size and (SizeOf(integer)- 1)) - SizeOf(integer);
+        if (Li^ = Ri^) then Result:= 0
+        else begin
+        DifferentInteger:
+          SwapL.i:= Li^;
+          SwapR.i:= Ri^;
+          for i:= 0 to 3 do begin
+            Result:= SwapL.Arr[i] - SwapR.Arr[i];
+            if Result <> 0 then Exit;
+          end;
+        end;
+      end else begin
+        Lq:= @Left;
+        Rq:= @Right;
+        for i:= 0 to (Size div SizeOf(NativeUInt)) - 1 do begin
+          Same:= Lq^ = Rq^;
+          if not(Same) then goto DifferentNativeInt;
+          Inc(Lq);
+          Inc(Rq);
+        end;
+        // Unaligned test for few remaining bytes
+        NativeUInt(Lq):= NativeUInt(Lq) + (Size and (SizeOf(NativeUInt)- 1)) - SizeOf(NativeUInt);
+        NativeUInt(Rq):= NativeUInt(Rq) + (Size and (SizeOf(NativeUInt)- 1)) - SizeOf(NativeUInt);
+        if (Lq^ = Rq^) then Result:= 0
+        else begin
+        DifferentNativeInt:
+          SwapL.ni:= Lq^;
+          SwapR.ni:= Rq^;
+          for i:= 0 to SizeOf(NativeInt)- 1 do begin
+            Result:= SwapL.Arr[i] - SwapR.Arr[i];
+            if Result <> 0 then Exit;
+          end;
+        end;
+      end; {else}
+    end; {case else}
+  end; {case}
 end;
 {$ELSE !PurePascal}
 {$IFDEF CPUX64}
 asm
   .NOFRAME
+  cmp   RCX,RDX
+  jz @Equal
+  test  RCX,RDX
+  jz @PossibleNilPointer
+@NoNil:
   xchg  RSI,RAX
   //Left: RCX
   //Right: RDX
@@ -346,12 +366,23 @@ asm
   xchg  RDI, RDX
   mov   RCX, R8
   repe  cmpsb
-  xchg  RSI,RAX
-  seta  AL
+  xchg  RSI, RAX
   xchg  RDI, RDX
+@Equal:
+  seta  AL
   movzx EAX,AL
   sbb   EAX,0
   ret
+@PossibleNilPointer:
+  lea   R9, [RCX-1]
+  lea   R10,[RDX-1]
+  mov   R11,R10
+  or    R11,R9
+  jns @NoNil
+  cmp   RCX,RDX
+  seta  AL
+  movzx EAX,AL
+  sbb   EAX,0
 end;
 {$ENDIF}
 {$IFDEF CPUX86}
@@ -359,14 +390,31 @@ asm
   //Left: EAX
   //Right: EDX
   //Size: ECX
+  cmp   EAX,EDX
+  jz @equal
+  test  EAX,EDX
+  jz @PossibleNilPointer
+@NoNil:
   xchg esi,eax
   xchg edi,edx
   repe cmpsb
   xchg esi,eax
   xchg edi,edx
+@equal:
   seta AL
   movzx EAX,AL
   sbb  EAX,0
+  ret
+@PossibleNilPointer:
+  or   EAX,EAX
+  jnz @FirstParamNotNil
+  dec  EAX
+  ret
+@FirstParamNotNil:
+  or   EDX,EDX
+  jnz @NoNil
+  lea EAX,[EDX+1]
+  ret
 end;
 {$ENDIF}
 {$ENDIF !PurePascal}
@@ -382,6 +430,8 @@ begin
   if (SizeOf(NativeUInt) > SizeOf(Integer)) and (Size < SizeOf(NativeUInt)) then begin
     Li:= Left;
     Ri:= Right;
+    if (Li = Ri) then Exit(True)
+    else if (Li = nil) or (Ri = nil) then Exit(False);
     for i:= 0 to (Size div SizeOf(integer)) - 1 do begin
       Result:= Li^ = Ri^;
       if not(Result) then Exit;
@@ -395,6 +445,8 @@ begin
   end else begin
     Lq:= Left;
     Rq:= Right;
+    if (Lq = Rq) then Exit(True)
+    else if (Lq = nil) or (Rq = nil) then Exit(False);
     for i:= 0 to (Size div SizeOf(NativeUInt)) - 1 do begin
       Result:= Lq^ = Rq^;
       if not(Result) then Exit;
@@ -413,73 +465,146 @@ end;
 //RDC: Right
 //R8: size
 asm
-  .NOFRAME
-  neg  R8
-  //jz @equal
-  sub  RCX, R8
-  sub  RDX, R8
+    .NOFRAME
+    cmp   RCX,RDX
+    jz @equal
+    test  RCX,RDX
+    jz @PossibleNilPointer
+@NoNil:
+    cmp   R8,4
+    jns @MoreThan4bytes
+    xor   RAX,RAX
+    xor   R9,R9
+    dec   R8
+    jz @Compare1
+    movzx EAX, word ptr [RCX+R8-1]
+    movzx R9d, word ptr [RDX+R8-1]
+    dec   R8
+    jz @Confront
+    shl   EAX,16
+    shl   R9d,16
+@compare1:
+    mov   AL, [RCX]
+    mov   R9b,[RDX]
+@Confront:
+    xor   EAX,R9d
+    setz  AL
+    ret
+@MoreThan4Bytes:
+    neg   R8
+    //jz @equal
+    sub   RCX, R8
+    sub   RDX, R8
 @loop8:
-  add  R8,8
-  jns   @check4
-  mov  RAX,[RCX+R8-8]
-  xor  RAX,[RDX+R8-8]
-  jz @loop8
+    add   R8,8
+    jns @check4
+    mov   RAX,[RCX+R8-8]
+    xor   RAX,[RDX+R8-8]
+    jz @loop8
 @different:
-  xor eax,eax
-  ret
+    xor   EAX,EAX
+    ret
 @check4:
-  sub r8,4
-  jg @smaller
-  mov  eax,[rcx+r8-4]
-  xor  eax,[rdx+r8-4]
-  jnz @different
+    sub   R8,4
+    jg @smaller
+    mov   EAX,[RCX+R8-4]
+    xor   EAX,[RDX+R8-4]
+    jnz @different
 @smaller:
-  and r8,-4
-  jz @equal
-  mov  eax,[RCX+R8]
-  xor  eax,[RDX+R8]
-  jnz @different
+    and   R8,-4
+    jz @equal
+    mov   EAX,[RCX+R8]
+    xor   EAX,[RDX+R8]
+    setz  AL
+    ret
 @equal:
-  mov eax,1
+    mov   EAX,1
+    ret
+@PossibleNilPointer:
+  lea   R9, [RCX-1]
+  lea   R10,[RDX-1]
+  mov   R11,R10
+  or    R11,R9
+  jns @NoNil
+  xor   EAX,EAX
 end;
 {$ELSE !CPUX64}
 //EAX: Left
 //EDX: Right
 //ECX: size
 asm
-  push EBX
-  neg  ECX
+  cmp   EAX,EDX
+  jnz @Skip
+  mov   AL,1
+  ret
+@Skip:
+  test  EAX,EDX
+  jz @PossibleNilPointer
+@NoNil:
+  push  EBX
+  cmp   ECX,3
+  jg @MoreThan3Bytes
+  push  ESI
+  dec   ECX
+  jz @OneMoreByte
+  movzx EBX, word ptr [EAX+ECX-1]
+  movzx ESI, word ptr [EDX+ECX-1]
+  dec   ECX
+  xchg  ESI,ECX
+  jz @DoneLoading
+  shl   EBX,8
+  shl   ECX,8
+@OneMoreByte:
+  mov   BL, [EAX]
+  mov   CL, [EDX]
+@DoneLoading:
+  xor   EBX,ECX
+  setz  AL
+  pop   ESI
+  pop   EBX
+  ret
+@MoreThan3Bytes:
+  neg   ECX
   //jz @equal
-  sub  EAX, ECX
-  sub  EDX, ECX
+  sub   EAX, ECX
+  sub   EDX, ECX
 @loop8:
-  add  ECX,8
-  jns   @check4
-  mov  EBX,[EAX+ECX-8]
-  xor  EBX,[EDX+ECX-8]
+  add   ECX,8
+  jns @check4
+  mov   EBX,[EAX+ECX-8]
+  xor   EBX,[EDX+ECX-8]
   jnz @different
-  mov  EBX,[EAX+ECX-8+4]
-  xor  EBX,[EDX+ECX-8+4]
+  mov   EBX,[EAX+ECX-8+4]
+  xor   EBX,[EDX+ECX-8+4]
   jz @loop8
 @different:
-  xor eax,eax
-  pop  EBX
+  xor   EAX,EAX
+  pop   EBX
   ret
 @check4:
-  sub  ECX,4
+  sub   ECX,4
   jg @smaller
-  mov  EBX,[EAX+ECX-4]
-  xor  EBX,[EDX+ECX-4]
+  mov   EBX,[EAX+ECX-4]
+  xor   EBX,[EDX+ECX-4]
   jnz @different
 @smaller:
-  and  ECX,-4
+  and   ECX,-4
   jz @equal
-  mov  EBX,[EAX+ECX]
-  xor  EBX,[EDX+ECX]
+  mov   EBX,[EAX+ECX]
+  xor   EBX,[EDX+ECX]
   jnz @different
 @equal:
-  mov  AL,1
-  pop  EBX
+  mov   AL,1
+  pop   EBX
+  ret
+@PossibleNilPointer:
+  or    EAX,EAX
+  jnz @FirstParamNotNil
+  ret
+@FirstParamNotNil:
+  or    EDX,EDX
+  jnz @NoNil
+  mov   EAX,EDX
 end;
 {$ENDIF}
 {$ENDIF}
@@ -917,7 +1042,7 @@ asm
   sub  EDX, ECX
 @compareLoop:
   add  ECX,4 //First 2 chars are already done
-  jg @Equal //Strings are equal.
+  jge @Equal //Strings are equal.
   mov  EBX,[EAX+ECX+4]
   xor  EBX,[EDX+ECX+4]
   jz @compareLoop

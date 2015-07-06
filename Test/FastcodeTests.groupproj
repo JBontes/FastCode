@@ -1,0 +1,72 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{DF0A6F50-B464-4A79-BC5B-AB40F434539F}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="TestCases.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="SpeedTests.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="InterfaceTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="RTLTestManagedRecords.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="TestCases">
+        <MSBuild Projects="TestCases.dproj"/>
+    </Target>
+    <Target Name="TestCases:Clean">
+        <MSBuild Projects="TestCases.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestCases:Make">
+        <MSBuild Projects="TestCases.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SpeedTests">
+        <MSBuild Projects="SpeedTests.dproj"/>
+    </Target>
+    <Target Name="SpeedTests:Clean">
+        <MSBuild Projects="SpeedTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SpeedTests:Make">
+        <MSBuild Projects="SpeedTests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="InterfaceTest">
+        <MSBuild Projects="InterfaceTest.dproj"/>
+    </Target>
+    <Target Name="InterfaceTest:Clean">
+        <MSBuild Projects="InterfaceTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="InterfaceTest:Make">
+        <MSBuild Projects="InterfaceTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="RTLTestManagedRecords">
+        <MSBuild Projects="RTLTestManagedRecords.dproj"/>
+    </Target>
+    <Target Name="RTLTestManagedRecords:Clean">
+        <MSBuild Projects="RTLTestManagedRecords.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="RTLTestManagedRecords:Make">
+        <MSBuild Projects="RTLTestManagedRecords.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="TestCases;SpeedTests;InterfaceTest;RTLTestManagedRecords"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="TestCases:Clean;SpeedTests:Clean;InterfaceTest:Clean;RTLTestManagedRecords:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="TestCases:Make;SpeedTests:Make;InterfaceTest:Make;RTLTestManagedRecords:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
