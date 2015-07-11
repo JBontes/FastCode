@@ -227,7 +227,7 @@ initialization
   TDUnitX.RegisterTestFixture(TSpeedTest<Int64>);
   TDUnitX.RegisterTestFixture(TSpeedTest<WideChar>);
   TDUnitX.RegisterTestFixture(TSpeedTest<Char>);
-  //TDUnitX.RegisterTestFixture(TSpeedTest<Str100>);
+  TDUnitX.RegisterTestFixture(TSpeedTest<Str100>);
   TDUnitX.RegisterTestFixture(TSpeedTest<string>);
   TDUnitX.RegisterTestFixture(TSpeedTest<AnsiString>);
 end.

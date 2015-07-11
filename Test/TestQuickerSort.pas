@@ -17,14 +17,15 @@ type
     procedure TearDown;
     [Test]
     //[Testcase('RandomIntSort 8','10000000')]
-    //[Testcase('RandomIntSort 8','100000')]
-    //[Testcase('RandomIntSort 7','10000')]
-    //[Testcase('RandomIntSort 6','1000')]
-    [Testcase('RandomIntSort 5','100')]
-    [Testcase('RandomIntSort 4','27')]
-    [Testcase('RandomIntSort 1','0')]
-    [Testcase('RandomIntSort 2','1')]
-    [Testcase('RandomIntSort 3','2')]
+
+    [Testcase('RandomIntSort 1', '0')]
+    [Testcase('RandomIntSort 2', '1')]
+    [Testcase('RandomIntSort 3', '2')]
+    [Testcase('RandomIntSort 4', '27')]
+    [Testcase('RandomIntSort 5', '100')]
+    [Testcase('RandomIntSort 6', '1000')]
+    [Testcase('RandomIntSort 7','10000')]
+    [Testcase('RandomIntSort 8','100000')]
     procedure TestSortIntegerRandom(Len: integer);
   end;
 

@@ -1,10 +1,21 @@
-{ ******************************************************* }
-{                                                         }
-{ CodeGear Delphi Runtime Library                         }
-{                                                         }
-{ Copyright(c) 1995-2014 Embarcadero Technologies, Inc.   }
-{                                                         }
-{ ******************************************************* }
+(*******************************************************
+ System.Generics.FastDefauts
+ A fast drop-in replacement for the comparers available in
+ `System.Generics.Defaults`.
+ It should compile and run in 2009 and beyond.
+
+ Alpha version 0.3, fully tested in Win32, Win64 and pure Pascal
+
+ (c) Copyright 2015 J. Bontes
+
+
+   This Source Code Form is subject to the terms of the
+   Mozilla Public License, v. 2.0.
+   If a copy of the MPL was not distributed with this file,
+   You can obtain one at http://mozilla.org/MPL/2.0/.
+
+*******************************************************)
+
 
 unit System.Generics.FastDefaults;
 
@@ -152,6 +163,9 @@ uses
   FastCompare
   ;
 
+const
+  DefaultHashSeed = FastCompare.DefaultHashSeed;
+
 type
   PSimpleInstance = ^TSimpleInstance;
 
@@ -206,7 +220,6 @@ function Nop(inst: Pointer): Integer; stdcall;
 begin
   Result:= -1;
 end;
-
 
 function FCompareI1(inst: Pointer; const Left, Right: Shortint): Integer;
 begin
@@ -320,7 +333,7 @@ end;
 
 function FCompareR4(inst: Pointer; const Left, Right: Single): Integer;
 begin
-  Result:= integer(Left > Right) - integer(Left < Right);
+  Result:= byte(Left > Right) - byte(Left < Right);
 end;
 
 function Equals_R4(inst: Pointer; const Left, Right: Single): Boolean;
@@ -330,15 +343,11 @@ end;
 
 function GetHashCode_R4(inst: Pointer; const Value: Single): Integer;
 var
-  m: Extended;
-  e: Integer;
+  X: Single;
 begin
   // Denormalized floats and positive/negative 0.0 complicate things.
-  {TODO -oJB -cOptimize : Replace frexp with simple alternative}
-  Frexp(Value, m, e);
-  if m = 0 then m:= Abs(m);
-  Result:= MurmurHash3(m, SizeOf(m), 0);
-  Result:= MurmurHash3(e, SizeOf(e), Result);
+  X:= Normalize(Value);
+  Result:= MurmurHash3(X, SizeOf(X), FastCompare.DefaultHashSeed);
 end;
 
 function FCompareR6(inst: Pointer; const Left, Right: Real48): Integer;
@@ -352,16 +361,9 @@ begin
 end;
 
 function GetHashCode_R6(inst: Pointer; const Value: Real48): Integer;
-var
-  m: Extended;
-  e: Integer;
 begin
-  // Denormalized floats and positive/negative 0.0 complicate things.
-  {TODO -oJB -cOptimize : Replace frexp with simple alternative}
-  Frexp(Value, m, e);
-  if m = 0 then m:= Abs(m);
-  Result:= MurmurHash3(m, SizeOf(m), 0);
-  Result:= MurmurHash3(e, SizeOf(e), Result);
+  //Real48 is always normalized
+  Result:= MurmurHash3(Value, SizeOf(Value), FastCompare.DefaultHashSeed);
 end;
 
 function FCompareR8(inst: Pointer; const Left, Right: Double): Integer;
@@ -376,15 +378,11 @@ end;
 
 function GetHashCode_R8(inst: Pointer; const Value: Double): Integer;
 var
-  m: Extended;
-  e: Integer;
+  X: Double;
 begin
   // Denormalized floats and positive/negative 0.0 complicate things.
-  {TODO -oJB -cOptimize : Replace frexp with simple alternative}
-  Frexp(Value, m, e);
-  if m = 0 then m:= Abs(m);
-  Result:= MurmurHash3(m, SizeOf(m), 0);
-  Result:= MurmurHash3(e, SizeOf(e), Result);
+  X:= Normalize(Value);
+  Result:= MurmurHash3(X, SizeOf(X), FastCompare.DefaultHashSeed);
 end;
 
 
@@ -400,15 +398,11 @@ end;
 
 function GetHashCode_R10(inst: Pointer; const Value: Extended): Integer;
 var
-  m: Extended;
-  e: Integer;
+  X: Extended;
 begin
   // Denormalized floats and positive/negative 0.0 complicate things.
-  {TODO -oJB -cOptimize : Replace frexp with simple alternative}
-  Frexp(Value, m, e);
-  if m = 0 then m:= Abs(m);
-  Result:= MurmurHash3(m, SizeOf(m), 0);
-  Result:= MurmurHash3(e, SizeOf(e), Result);
+  X:= Normalize(Value);
+  Result:= MurmurHash3(X, SizeOf(X), FastCompare.DefaultHashSeed);
 end;
 
 function FCompareRI8(inst: Pointer; const Left, Right: Comp): Integer;
@@ -516,19 +510,44 @@ type
   TPS3 = string;
 {$ENDIF !NEXTGEN}
 
-function FComparePS1(inst: PSimpleInstance; const Left, Right: TPS1): Integer;
+function FComparePS1(inst: PSimpleInstance; const Left, Right: PByte): Integer;
+var
+  Len: integer;
 begin
-  Result:= integer(Left > Right) - integer(Left < Right);
+  Len:= Min(Left[0], Right[0]);
+  if Len > 0 then Result:= Left[1] - Right[1]
+  else Result:= Left[0] - Right[0];
 end;
 
-function FComparePS2(inst: PSimpleInstance; const Left, Right: TPS2): Integer;
+function FComparePS2(inst: PSimpleInstance; const Left, Right: PByte): Integer;
+var
+  Len: integer;
 begin
-  Result:= integer(Left > Right) - integer(Left < Right);
+  Len:= Min(Left[0], Right[0]);
+  if Len > 0 then begin
+    Result:= Left[1] - Right[1];
+    if Result = 0 then Result:= Left[2] - Right[2];
+  end
+  else Result:= Left[0] - Right[0];
 end;
 
-function FComparePS3(inst: PSimpleInstance; const Left, Right: TPS3): Integer;
+function FComparePS3(inst: PSimpleInstance; const Left, Right: PInteger): Integer;
+var
+  LenDiff, Len: integer;
+  i: integer;
+  L,R: integer;
 begin
-  Result:= integer(Left > Right) - integer(Left < Right);
+  L:= Left^;
+  R:= Right^;
+  LenDiff:= byte(L) - Byte(R);
+  Len:= Min(Byte(L), byte(R));
+  for i:= 0 to Len-1 do begin
+    L:= L shr 8;
+    R:= R shr 8;
+    Result:= byte(L) - byte(R);
+    if Result <> 0 then exit;
+  end;
+  Result:= LenDiff;
 end;
 
 function FComparePSn(inst: PSimpleInstance; const Left, Right: OpenString): Integer;
@@ -536,19 +555,35 @@ begin
   Result:= FastCompare.Compare_PSn(Left, Right);
 end;
 
-function Equals_PS1(inst: PSimpleInstance; const Left, Right: TPS1): Boolean;
+function Equals_PS1(inst: PSimpleInstance; const Left, Right: PByte): Boolean;
 begin
-  Result:= Left = Right;
+  //Result:= Left = Right;
+  Result:= (Left[0] = Right[0])
+       and ((Left[0] = 0) or (Left[1] = Right[1]));
 end;
 
-function Equals_PS2(inst: PSimpleInstance; const Left, Right: TPS2): Boolean;
+function Equals_PS2(inst: PSimpleInstance; const Left, Right: PByte): Boolean;
+var
+  Len: byte;
+  i: integer;
 begin
-  Result:= Left = Right;
+  Len:= Left[0];
+  Result:= (Len = Right[0]);
+  if Result then for i:= 1 to Len do begin
+    Result:= Result and not(Left[i] <> Right[i]);
+  end;
 end;
 
-function Equals_PS3(inst: PSimpleInstance; const Left, Right: TPS3): Boolean;
+function Equals_PS3(inst: PSimpleInstance; const Left, Right: PByte): Boolean;
+var
+  Len: byte;
+  i: integer;
 begin
-  Result:= Left = Right;
+  Len:= Left[0];
+  Result:= (Len = Right[0]);
+  if Result then for i:= 1 to Len do begin
+    Result:= Result and not(Left[i] <> Right[i]);
+  end;
 end;
 
 function Equals_PSn(inst: PSimpleInstance; const Left, Right: OpenString): Boolean;
@@ -610,10 +645,6 @@ function GetHashCode_UString(inst: PSimpleInstance; const Value: UnicodeString):
 begin
   Result:= MurmurHash3(Value[low(string)], Length(Value) * SizeOf(Char), 0);
 end;
-
-
-
-
 
 type
   TEmptyRec = record
@@ -855,36 +886,25 @@ begin
   Result:= TStringComparer(FOrdinal);
 end;
 
-function ExtendedHashImpl(Value: Extended): Integer;
-type
-  TRec = record
-    m: Extended;
-    e: Integer;
-  end;
-var
-  data: TRec;
-begin
-  // Denormalized floats and positive/negative 0.0 complicate things.
-  {TODO -oJB -cOptimization : Replace frexp with simplified normalization code}
-  Frexp(Value, Data.m, Data.e);
-  if Data.m = 0 then Data.m:= Abs(Data.m);
-  Result:= MurmurHash3(Data, SizeOf(Data), 0);
-end;
-
-function ExtendedHash(Value: Pointer; Size: Integer): Integer; inline;
-begin
-  Result:= ExtendedHashImpl(PExtended(Value)^);
-end;
-
-function DoubleHash(Value: Pointer; Size: Integer): Integer; inline;
-begin
-  Result:= ExtendedHashImpl(PDouble(Value)^);
-end;
-
-function SingleHash(Value: Pointer; Size: Integer): Integer; inline;
-begin
-  Result:= ExtendedHashImpl(PSingle(Value)^);
-end;
+//function ExtendedHashImpl(Value: Extended): Integer;
+//begin
+//  Result:= MurmurHash3(Normalize(Value), SizeOf(Value), 0);
+//end;
+//
+//function ExtendedHash(Value: Pointer; Size: Integer): Integer; inline;
+//begin
+//  Result:= ExtendedHashImpl(PExtended(Value)^);
+//end;
+//
+//function DoubleHash(Value: Pointer; Size: Integer): Integer; inline;
+//begin
+//  Result:= ExtendedHashImpl(PDouble(Value)^);
+//end;
+//
+//function SingleHash(Value: Pointer; Size: Integer): Integer; inline;
+//begin
+//  Result:= ExtendedHashImpl(PSingle(Value)^);
+//end;
 
 { TComparer<T> }
 

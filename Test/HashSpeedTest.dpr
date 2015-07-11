@@ -7,7 +7,7 @@ program HashSpeedTest;
 uses
   System.SysUtils,
   SynCommons in '..\..\Mormot\SynCommons.pas',
-  FastDefaults,
+  FastCompare,
   System.Generics.Defaults,
   System.Diagnostics;
 
@@ -52,42 +52,6 @@ begin
 end;
 
 
-{$pointermath on}
-// Meiyan means Beauty, Charming Eyes or most precisely: SOULFUL EYES.
-function FNV1A_Hash_Meiyan(const str; wrdlen: cardinal; seed: integer = 2166136261): integer;
-const
-  prime = 709607;
-var
-  Hash32: integer;
-  p: PInteger;
-begin
-  p:= @Str;
-  Hash32:= Seed;
-  while wrdlen >= 2 * SizeOf(Cardinal) do begin
-    Hash32:= (hash32 xor (
-      ((p[0] shl 5) or (p[0] shr (32 - 5)))
-     xor p[1])) * prime;
-    inc(p,2);
-    dec(wrdlen, SizeOf(integer)*2)
-  end;
-  if (wrdlen and SizeOf(integer)) <> 0 then begin
-    hash32:= (hash32 xor PWord(p)^) * Prime;
-    Inc(PWord(p));
-    hash32:= (hash32 xor PWord(p)^) * Prime;
-    Inc(PWord(p));
-  end;
-  if (wrdlen and SizeOf(word)) <> 0 then begin
-    hash32:= (hash32 xor PWord(p)^) * prime;
-    Inc(PWord(p));
-  end;
-  if (wrdlen and 1) <> 0 then begin
-    hash32:= (hash32 xor PByte(p)^) * prime;
-  end;
-  Result:= Hash32 xor (hash32 shr 16);
-end;
-
-
-{$pointermath off}
 
 
 function FNV1A_Hash_Meiyan_asm(const str; wrdlen: cardinal; seed: integer = 2166136261): integer;

@@ -1,5 +1,5 @@
 (*******************************************************
- FastDefauts
+ FastDefaults
  A fast and small replacement for the interface
  based comparers available in `System.Generics.Defaults` since D2009.
  This works best in XE7 and above because it depends
@@ -10,12 +10,14 @@
  Alpha version 0.2, fully tested in Win32, Win64 and pure Pascal
 
  (c) Copyright 2015 J. Bontes
- *)
 
-(* This Source Code Form is subject to the terms of the
+
+   This Source Code Form is subject to the terms of the
    Mozilla Public License, v. 2.0.
    If a copy of the MPL was not distributed with this file,
-   You can obtain one at http://mozilla.org/MPL/2.0/.*)
+   You can obtain one at http://mozilla.org/MPL/2.0/.
+
+*******************************************************)
 
 unit FastDefaults;
 

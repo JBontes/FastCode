@@ -103,14 +103,14 @@ type
     procedure Setup;
     //[TearDown]
     procedure TearDown;
-//    [Test]
-//    procedure TestString1(const L, R: TStr1);
-//    [Test]
-//    procedure TestString2(const L, R: TStr2);
-//    [Test]
-//    procedure TestString3(const L, R: TStr3);
-//    [Test]
-//    procedure TestString255(const L, R: TStr255);
+    [Test]
+    procedure TestString1(const L, R: TStr1);
+    [Test]
+    procedure TestString2(const L, R: TStr2);
+    [Test]
+    procedure TestString3(const L, R: TStr3);
+    [Test]
+    procedure TestString255(const L, R: TStr255);
     [Test]
     procedure TestReal48;
     [Test]
@@ -227,27 +227,27 @@ type
   TTestString<T> = class(TObject)
     [Test]
      //single char
-//    [TestCase('String1', 'a,a')]
-//    [TestCase('String2', 'a,b')]
-//    [TestCase('String3', 'c,a')]
-//    [TestCase('String4', ',a')]
-//    [TestCase('String5', 'a,')]
-//    [TestCase('String6', ',')]
-//    //double char
-//    [TestCase('String7', 'aa,aa')]
-//    [TestCase('String8', 'aa,ba')]
-//    [TestCase('String9', 'ca,aa')]
-//    [TestCase('String10', ',aa')]
-//    [TestCase('String11', 'aa,')]
-//    //three chars
-//    [TestCase('String12', 'aaa,aaa')]
-//    [TestCase('String13', 'aaa,baa')]
-//    [TestCase('String14', 'caa,aaa')]
-//    [TestCase('String12', 'aaa,aaa')]
-//    [TestCase('String13', 'aaa,aab')]
-//    [TestCase('String14', 'aac,aaa')]
-//    [TestCase('String15', ',aaa')]
-//    [TestCase('String16', 'aaa,')]
+    [TestCase('String1', 'a,a')]
+    [TestCase('String2', 'a,b')]
+    [TestCase('String3', 'c,a')]
+    [TestCase('String4', ',a')]
+    [TestCase('String5', 'a,')]
+    [TestCase('String6', ',')]
+    //double char
+    [TestCase('String7', 'aa,aa')]
+    [TestCase('String8', 'aa,ba')]
+    [TestCase('String9', 'ca,aa')]
+    [TestCase('String10', ',aa')]
+    [TestCase('String11', 'aa,')]
+    //three chars
+    [TestCase('String12', 'aaa,aaa')]
+    [TestCase('String13', 'aaa,baa')]
+    [TestCase('String14', 'caa,aaa')]
+    [TestCase('String12', 'aaa,aaa')]
+    [TestCase('String13', 'aaa,aab')]
+    [TestCase('String14', 'aac,aaa')]
+    [TestCase('String15', ',aaa')]
+    [TestCase('String16', 'aaa,')]
     //4 chars fit into a 32bit register
     [TestCase('String17', 'aaaa,aaaa')]
     [TestCase('String18', 'aaaa,baaa')]
@@ -487,81 +487,81 @@ begin
   TTest<T>.Test(L,R);
 end;
 
-//procedure TestComplex.TestString1(const L, R: TStr1);
-//begin
-//  TTest<TStr1>.Test('a', 'a');
-//  TTest<TStr1>.Test('b', 'c');
-//  TTest<TStr1>.Test('c', 'a');
-//  TTest<TStr1>.Test('', 'a');
-//  TTest<TStr1>.Test('c', '');
-//  TTest<TStr1>.Test('', '');
-//end;
-//
-//procedure TestComplex.TestString2(const L, R: TStr2);
-//begin
-//  TTest<TStr2>.Test('aa', 'aa');
-//  TTest<TStr2>.Test('bb', 'cc');
-//  TTest<TStr2>.Test('cc', 'aa');
-//  TTest<TStr2>.Test('', 'aa');
-//  TTest<TStr2>.Test('cc', '');
-//  TTest<TStr2>.Test('', '');
-//  TTest<TStr2>.Test('cc', 'a');
-//  TTest<TStr2>.Test('c', 'cc');
-//end;
-//
-//procedure TestComplex.TestString3(const L, R: TStr3);
-//begin
-//  TTest<TStr3>.Test('aaa', 'aaa');
-//  TTest<TStr3>.Test('bbb', 'ccc');
-//  TTest<TStr3>.Test('ccc', 'aaa');
-//  TTest<TStr3>.Test('', 'aaa');
-//  TTest<TStr3>.Test('ccc', '');
-//  TTest<TStr3>.Test('', '');
-//  TTest<TStr3>.Test('ccc', 'a');
-//  TTest<TStr3>.Test('c', 'ccc');
-//end;
-//
-//procedure TestComplex.TestString255(const L, R: TStr255);
-//var
-//  a,b,c: TStr255;
-//  i: integer;
-//begin
-//  TTest<TStr255>.Test('aaaaaaaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaaaaab','1:');
-//  TTest<TStr255>.Test('aaaaaaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaaaab','2:');
-//  TTest<TStr255>.Test('aaaaaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaaab','3:');
-//  TTest<TStr255>.Test('aaaaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaab','4:');
-//  TTest<TStr255>.Test('aaa', 'aaa','5:');
-//  TTest<TStr255>.Test('1234567', '1234567','6:');
-//  TTest<TStr255>.Test('1234567', '123456z','7:');
-//  TTest<TStr255>.Test('123456z', '1234567','8:');
-//  TTest<TStr255>.Test('bbb', 'ccc','9:');
-//  TTest<TStr255>.Test('ccc', 'aaa','10:');
-//  TTest<TStr255>.Test('', 'aaa','11:');
-//  TTest<TStr255>.Test('ccc', '','12:');
-//  TTest<TStr255>.Test('', '','13:');
-//  TTest<TStr255>.Test('ccc', 'a','14:');
-//  TTest<TStr255>.Test('c', 'ccc','15:');
-//  TTest<TStr255>.Test('cc', 'ccc','16:');
-//  TTest<TStr255>.Test('ccc', 'cccc','17:');
-//  TTest<TStr255>.Test('cccc', 'cccccccccc','18:');
-//  a[0]:= #255;
-//  b[0]:= #255;
-//  for i:= 1 to 254 do begin
-//    a[i]:= AnsiChar(Chr(Random(255)));
-//    b[i]:= a[i];
-//  end;
-//  a[0]:= #255;
-//  b[0]:= #255;
-//  TTest<ShortString>.Test(ShortString((@a)^),ShortString((@b)^),'19:');
-//  for i:= 1 to 254 do begin
-//    b[i]:= AnsiChar(Chr(Random(255)));
-//  end;
-//  c:= '';
-//  TTest<ShortString>.Test(ShortString((@a)^),ShortString((@b)^),'20:');
-//  TTest<ShortString>.Test(ShortString((@c)^),ShortString((@b)^),'21:');
-//  TTest<ShortString>.Test(ShortString((@a)^),ShortString((@c)^),'22:');
-//  //TTest<ShortString>.ShortStringTest;
-//end;
+procedure TestComplex.TestString1(const L, R: TStr1);
+begin
+  TTest<TStr1>.Test('a', 'a');
+  TTest<TStr1>.Test('b', 'c');
+  TTest<TStr1>.Test('c', 'a');
+  TTest<TStr1>.Test('', 'a');
+  TTest<TStr1>.Test('c', '');
+  TTest<TStr1>.Test('', '');
+end;
+
+procedure TestComplex.TestString2(const L, R: TStr2);
+begin
+  TTest<TStr2>.Test('aa', 'aa','1:');
+  TTest<TStr2>.Test('bb', 'cc','2:');
+  TTest<TStr2>.Test('cc', 'aa','3:');
+  TTest<TStr2>.Test('', 'aa','4:');
+  TTest<TStr2>.Test('cc', '','5:');
+  TTest<TStr2>.Test('', '','6:');
+  TTest<TStr2>.Test('cc', 'a','7:');
+  TTest<TStr2>.Test('c', 'cc','8:');
+end;
+
+procedure TestComplex.TestString3(const L, R: TStr3);
+begin
+  TTest<TStr3>.Test('aaa', 'aaa','1:');
+  TTest<TStr3>.Test('bbb', 'ccc','2:');
+  TTest<TStr3>.Test('ccc', 'aaa','3:');
+  TTest<TStr3>.Test('', 'aaa','4:');
+  TTest<TStr3>.Test('ccc', '','5:');
+  TTest<TStr3>.Test('', '','6:');
+  TTest<TStr3>.Test('ccc', 'a','7:');
+  TTest<TStr3>.Test('c', 'ccc','8:');
+end;
+
+procedure TestComplex.TestString255(const L, R: TStr255);
+var
+  a,b,c: TStr255;
+  i: integer;
+begin
+  TTest<TStr255>.Test('aaaaaaaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaaaaab','1:');
+  TTest<TStr255>.Test('aaaaaaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaaaab','2:');
+  TTest<TStr255>.Test('aaaaaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaaab','3:');
+  TTest<TStr255>.Test('aaaaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaab','4:');
+  TTest<TStr255>.Test('aaa', 'aaa','5:');
+  TTest<TStr255>.Test('1234567', '1234567','6:');
+  TTest<TStr255>.Test('1234567', '123456z','7:');
+  TTest<TStr255>.Test('123456z', '1234567','8:');
+  TTest<TStr255>.Test('bbb', 'ccc','9:');
+  TTest<TStr255>.Test('ccc', 'aaa','10:');
+  TTest<TStr255>.Test('', 'aaa','11:');
+  TTest<TStr255>.Test('ccc', '','12:');
+  TTest<TStr255>.Test('', '','13:');
+  TTest<TStr255>.Test('ccc', 'a','14:');
+  TTest<TStr255>.Test('c', 'ccc','15:');
+  TTest<TStr255>.Test('cc', 'ccc','16:');
+  TTest<TStr255>.Test('ccc', 'cccc','17:');
+  TTest<TStr255>.Test('cccc', 'cccccccccc','18:');
+  a[0]:= #255;
+  b[0]:= #255;
+  for i:= 1 to 254 do begin
+    a[i]:= AnsiChar(Chr(Random(255)));
+    b[i]:= a[i];
+  end;
+  a[0]:= #255;
+  b[0]:= #255;
+  TTest<ShortString>.Test(ShortString((@a)^),ShortString((@b)^),'19:');
+  for i:= 1 to 254 do begin
+    b[i]:= AnsiChar(Chr(Random(255)));
+  end;
+  c:= '';
+  TTest<ShortString>.Test(ShortString((@a)^),ShortString((@b)^),'20:');
+  TTest<ShortString>.Test(ShortString((@c)^),ShortString((@b)^),'21:');
+  TTest<ShortString>.Test(ShortString((@a)^),ShortString((@c)^),'22:');
+  //TTest<ShortString>.ShortStringTest;
+end;
 
 procedure TestComplex.TestEmptyRec;
 var
@@ -1345,6 +1345,7 @@ initialization
   TDUnitX.RegisterTestFixture(TTestFloat<Extended>);
   TDUnitX.RegisterTestFixture(TTestFloat<Currency>);
   TDUnitX.RegisterTestFixture(TTestFloat<Comp>);
+  TDUnitX.RegisterTestFixture(TTestFloat<Currency>);
   //Integers
   TDUnitX.RegisterTestFixture(TTestInteger<byte>);
   TDUnitX.RegisterTestFixture(TTestInteger<int8>);

@@ -15,6 +15,9 @@
         <Projects Include="RTLTestManagedRecords.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\HashStressTest.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -59,14 +62,23 @@
     <Target Name="RTLTestManagedRecords:Make">
         <MSBuild Projects="RTLTestManagedRecords.dproj" Targets="Make"/>
     </Target>
+    <Target Name="HashStressTest">
+        <MSBuild Projects="..\HashStressTest.dproj"/>
+    </Target>
+    <Target Name="HashStressTest:Clean">
+        <MSBuild Projects="..\HashStressTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HashStressTest:Make">
+        <MSBuild Projects="..\HashStressTest.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="TestCases;SpeedTests;InterfaceTest;RTLTestManagedRecords"/>
+        <CallTarget Targets="TestCases;SpeedTests;InterfaceTest;RTLTestManagedRecords;HashStressTest"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="TestCases:Clean;SpeedTests:Clean;InterfaceTest:Clean;RTLTestManagedRecords:Clean"/>
+        <CallTarget Targets="TestCases:Clean;SpeedTests:Clean;InterfaceTest:Clean;RTLTestManagedRecords:Clean;HashStressTest:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="TestCases:Make;SpeedTests:Make;InterfaceTest:Make;RTLTestManagedRecords:Make"/>
+        <CallTarget Targets="TestCases:Make;SpeedTests:Make;InterfaceTest:Make;RTLTestManagedRecords:Make;HashStressTest:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
