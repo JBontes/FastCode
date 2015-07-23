@@ -1,7 +1,7 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{694EA68E-AB5C-479E-B095-31595A45F395}</ProjectGuid>
-        <ProjectVersion>16.0</ProjectVersion> 
+        <ProjectVersion>16.0</ProjectVersion>
         <FrameworkType>None</FrameworkType>
         <MainSource>HashStressTest.dpr</MainSource>
         <Base>True</Base>

@@ -1,4 +1,4 @@
-program HashStressTest;
+﻿program HashStressTest;
 
 {$APPTYPE CONSOLE}
 
@@ -12,7 +12,7 @@ uses
   System.Diagnostics,
   System.Generics.Collections,
   System.Classes,
-  SynCommons  
+  SynCommons
   ;
 
 

@@ -1,5 +1,5 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <PropertyGroup> 
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
         <ProjectGuid>{C375C00C-FD93-4164-9169-195413BE1D75}</ProjectGuid>
         <ProjectVersion>16.0</ProjectVersion>
         <FrameworkType>None</FrameworkType>
