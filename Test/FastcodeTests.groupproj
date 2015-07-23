@@ -12,7 +12,11 @@
         <Projects Include="InterfaceTest.dproj">
             <Dependencies/>
         </Projects>
+<<<<<<< HEAD
         <Projects Include="..\HashStressTest.dproj">
+=======
+        <Projects Include="HashStressTest.dproj">
+>>>>>>> parent of 8975406... Revert "Improved the hashes"
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -51,13 +55,13 @@
         <MSBuild Projects="InterfaceTest.dproj" Targets="Make"/>
     </Target>
     <Target Name="HashStressTest">
-        <MSBuild Projects="..\HashStressTest.dproj"/>
+        <MSBuild Projects="HashStressTest.dproj"/>
     </Target>
     <Target Name="HashStressTest:Clean">
-        <MSBuild Projects="..\HashStressTest.dproj" Targets="Clean"/>
+        <MSBuild Projects="HashStressTest.dproj" Targets="Clean"/>
     </Target>
     <Target Name="HashStressTest:Make">
-        <MSBuild Projects="..\HashStressTest.dproj" Targets="Make"/>
+        <MSBuild Projects="HashStressTest.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
         <CallTarget Targets="TestCases;SpeedTests;InterfaceTest;HashStressTest"/>
