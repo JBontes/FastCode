@@ -3,7 +3,7 @@ program HashSpeedTest;
 {$APPTYPE CONSOLE}
 
 {$R *.res}
-
+  
 uses
   System.SysUtils,
   SynCommons in '..\..\Mormot\SynCommons.pas',

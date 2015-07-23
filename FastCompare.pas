@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils;
 
-// {$define purepascal}
+//  {$define purepascal}
 
 const
   DefaultHashSeed = 2166136261;
