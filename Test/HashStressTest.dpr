@@ -12,9 +12,7 @@ uses
   System.Diagnostics,
   System.Generics.Collections,
   System.Classes,
-  SynCommons
-  ;
-
+  SynCommons;
 
 function MakeZip(Number: integer): string;
 begin
@@ -29,7 +27,7 @@ type
   TBucket = array [0..BucketMax] of Integer;
   THashOutcome = TArray<integer>;
 
-  THashKind = (hkBob, hkMurmur, hkCrc32, hkMeiyan);
+  THashKind = (hkBob, hkMurmur, hkCrc32, hkMeiyan, hkxxHash32);
   TZip = array [0..ZipMax] of string;
 
   TMyHash = function(const Data; Len, InitData: Integer): Integer;
@@ -175,6 +173,7 @@ begin
   end;
 end;
 
+
 type
   TTestProc = procedure(Hasher: TMyHash; Flavor: THashKind);
 
@@ -185,7 +184,7 @@ var
   name: string;
   Stats: TCollisionStats;
 begin
-  for H := hkBob to hkMeiyan do begin
+  for H := hkBob to hkxxHash32 do begin
     InitBuckets;
     Watch:= TStopwatch.StartNew;
     case H of
@@ -204,6 +203,10 @@ begin
       hkMeiyan: begin
         TestProc(FastCompare.FNV1A_Hash_Meiyan, hkMeiyan);
         Name:= 'FNV_1a_Meiyan';
+      end;
+      hkxxHash32: begin
+        TestProc(FastCompare.xxHash32Calc, hkxxHash32);
+        Name:= 'xxHash32';
       end;
     end;
     Watch.Stop;
