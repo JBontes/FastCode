@@ -12,11 +12,10 @@
         <Projects Include="InterfaceTest.dproj">
             <Dependencies/>
         </Projects>
-<<<<<<< HEAD
-        <Projects Include="..\HashStressTest.dproj">
-=======
         <Projects Include="HashStressTest.dproj">
->>>>>>> parent of 8975406... Revert "Improved the hashes"
+            <Dependencies/>
+        </Projects>
+        <Projects Include="HashSpeedTest.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -63,14 +62,23 @@
     <Target Name="HashStressTest:Make">
         <MSBuild Projects="HashStressTest.dproj" Targets="Make"/>
     </Target>
+    <Target Name="HashSpeedTest">
+        <MSBuild Projects="HashSpeedTest.dproj"/>
+    </Target>
+    <Target Name="HashSpeedTest:Clean">
+        <MSBuild Projects="HashSpeedTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HashSpeedTest:Make">
+        <MSBuild Projects="HashSpeedTest.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="TestCases;SpeedTests;InterfaceTest;HashStressTest"/>
+        <CallTarget Targets="TestCases;SpeedTests;InterfaceTest;HashStressTest;HashSpeedTest"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="TestCases:Clean;SpeedTests:Clean;InterfaceTest:Clean;HashStressTest:Clean"/>
+        <CallTarget Targets="TestCases:Clean;SpeedTests:Clean;InterfaceTest:Clean;HashStressTest:Clean;HashSpeedTest:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="TestCases:Make;SpeedTests:Make;InterfaceTest:Make;HashStressTest:Make"/>
+        <CallTarget Targets="TestCases:Make;SpeedTests:Make;InterfaceTest:Make;HashStressTest:Make;HashSpeedTest:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
