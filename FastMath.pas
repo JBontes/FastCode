@@ -1,8 +1,205 @@
 unit FastMath;
 
+//note that this unit only contains optimized versions for X64.
+//The other versions are already optimized.
+
 interface
 
+{ MinValue: Returns the smallest signed value in the data array (MIN) }
+function MinValue(const Data: array of Single): Single; overload;
+function MinValue(const Data: array of Double): Double; overload;
+function MinValue(const Data: array of Extended): Extended; overload;
+function MinIntValue(const Data: array of Integer): Integer;
+
+function Min(const A, B: Integer): Integer; overload; {$ifdef PurePascal}inline;{$endif}
+function Min(const A, B: Int64): Int64; overload; inline;
+function Min(const A, B: UInt64): UInt64; overload; inline;
+function Min(const A, B: Single): Single; overload; inline;
+function Min(const A, B: Double): Double; overload; inline;
+function Min(const A, B: Extended): Extended; overload; inline;
+
+{ MaxValue: Returns the largest signed value in the data array (MAX) }
+function MaxValue(const Data: array of Single): Single; overload;
+function MaxValue(const Data: array of Double): Double; overload;
+function MaxValue(const Data: array of Extended): Extended; overload;
+function MaxIntValue(const Data: array of Integer): Integer;
+
+function Max(const A, B: Integer): Integer; overload; inline;
+function Max(const A, B: Int64): Int64; overload; inline;
+function Max(const A, B: UInt64): UInt64; overload; inline;
+function Max(const A, B: Single): Single; overload; inline;
+function Max(const A, B: Double): Double; overload; inline;
+function Max(const A, B: Extended): Extended; overload; inline;
+
+
+
 implementation
+
+{ MinValue: Returns the smallest signed value in the data array (MIN) }
+function MinValue(const Data: array of Single): Single; overload;
+asm
+  or    rcx,rcx
+  jz @error
+  mov   eax,[rcx-4] //get length
+  neg   eax
+  sub   rcx,rax
+  add   eax,32
+  jns @tail
+  movups xmm0,[rcx+rax-32]
+@loop:
+  minps  xmm0,[rcx+rax-32+16]
+  add   eax,16
+  js @loop
+  movaps xmm1,xmm0
+  shufps xmm1,xmm0,3+(2 shl 2)+(1 shl 4)+(0 shl 6)
+  minps  xmm0,xmm1
+  shufps xmm1,xmm1,2+(3 shl 2)+(0 shl 4)+(1 shl 6)
+  minps  xmm0,xmm1
+  movss  eax,xmm0
+@tail:
+
+@error:
+
+
+end;
+
+function MinValue(const Data: array of Double): Double; overload;
+begin
+
+end;
+
+function MinValue(const Data: array of Extended): Extended; overload;
+begin
+
+end;
+
+function MinIntValue(const Data: array of Integer): Integer;
+begin
+
+end;
+
+
+function Min(const A, B: Integer): Integer; overload;
+{$if defined(PurePascal)}
+inline;
+begin
+  Result:= ((a-b)*(a>b))+b;
+end;
+{$elseif defined(CPUX86)}
+asm
+  sub a,b
+  sbb ecx,ecx
+  and a,ecx
+  add a,b
+end;
+{$else}
+asm
+  sub a,b
+  sbb eax,eax  //RAX = 0 if a>b else RAX=-1
+  and eax,a    //RAX = 0 if a>b else RAX=(a-b)
+  add eax,b    //rax = a-b+b = a if b>a else rax =0+b = b
+end;
+{$endif}
+
+function Min(const A, B: Int64): Int64; overload; {$if defined(PurePascal)}
+inline;
+begin
+  Result:= ((a-b)*(a>b))+b;
+end;
+{$elseif defined(CPUX86)}
+asm
+  sub a,b
+  sbb ecx,ecx
+  and a,ecx
+  add a,b
+end;
+{$else}
+asm
+  sub a,b
+  sbb rax,rax  //RAX = 0 if a>b else RAX=-1
+  and rax,a    //RAX = 0 if a>b else RAX=(a-b)
+  add rax,b    //rax = a-b+b = a if b>a else rax =0+b = b
+end;
+{$endif}
+
+
+function Min(const A, B: UInt64): UInt64; overload; inline;
+begin
+
+end;
+
+function Min(const A, B: Single): Single; overload; inline;
+begin
+
+end;
+
+function Min(const A, B: Double): Double; overload; inline;
+begin
+
+end;
+
+function Min(const A, B: Extended): Extended; overload; inline;
+begin
+
+end;
+
+
+{ MaxValue: Returns the largest signed value in the data array (MAX) }
+function MaxValue(const Data: array of Single): Single; overload;
+begin
+
+end;
+
+function MaxValue(const Data: array of Double): Double; overload;
+begin
+
+end;
+
+function MaxValue(const Data: array of Extended): Extended; overload;
+begin
+
+end;
+
+function MaxIntValue(const Data: array of Integer): Integer;
+begin
+
+end;
+
+
+function Max(const A, B: Integer): Integer; overload; inline;
+begin
+
+end;
+
+function Max(const A, B: Int64): Int64; overload; inline;
+begin
+
+end;
+
+function Max(const A, B: UInt64): UInt64; overload; inline;
+begin
+
+end;
+
+function Max(const A, B: Single): Single; overload; inline;
+begin
+
+end;
+
+function Max(const A, B: Double): Double; overload; inline;
+begin
+
+end;
+
+function Max(const A, B: Extended): Extended; overload; inline;
+begin
+
+end;
+
+
+
+
+
 
 //// func Abs(x float64) float64
 //TEXT ·Abs(SB),NOSPLIT,$0
