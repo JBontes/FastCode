@@ -3,7 +3,17 @@ Fast replacements for Embarcadero's standard libs for Delphi XE7 and above.
 Note that this is still early alpha code and needs further optimization in places.  
 A comprehensive testsuite is available in the Test directory.  
 
-# FastDefaults  
+### System.Generics.FastDefaults  (New)  
+Drop-in replacement for System.Generics.Defaults  
+This will not speed up trivial compares like `integer` and `char`, but e.g. the string comparisons in 64-bit are 8x faster.  
+Every comparison is optimized as much as possible.
+The following QC's have been fixed:  
+RSP-11321 Inconsistent compare with 8 bytes record https://quality.embarcadero.com/browse/RSP-11321   
+RSP-11310 incorrect results when comparing with an empty dynamic array https://quality.embarcadero.com/browse/RSP-11310  
+RSP-11301 comparing real48 gives AV or stack corruption https://quality.embarcadero.com/browse/RSP-11301  
+
+
+### FastDefaults  
 Speeds up comparisons by using static class functions instead of interfaces.  
 The functions are inline and inject only the short snippet of code need to compare the types in use.  
 
