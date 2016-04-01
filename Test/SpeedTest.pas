@@ -32,8 +32,10 @@ type
 
 implementation
 
-uses System.Diagnostics,
-System.SysUtils;
+uses
+  System.Diagnostics,
+  FastCodeCPUID,
+  System.SysUtils;
 
 function TSpeedTest<T>.RandomT: T;
 type
@@ -133,9 +135,11 @@ var
   Bigger1, Smaller1, Same1: integer;
   Bigger2, Smaller2, Same2: integer;
 begin
+  //Workaround for DUNITX bug
+  if FastCompare = nil then FixtureSetup;
   //EmptyLoop
   Smaller1:= 1;
-  ReadLn;
+  //ReadLn;
   Timer:= TStopwatch.StartNew;
   for i:= Low(bag1) to High(bag1) do begin
     Outcome:= Smaller1;
