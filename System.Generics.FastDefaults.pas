@@ -4,17 +4,30 @@
  `System.Generics.Defaults`.
  It should compile and run in 2009 and beyond.
 
- Alpha version 0.3, fully tested in Win32, Win64 and pure Pascal
+ Alpha version 0.4, fully tested in Win32, Win64 and pure Pascal
 
  (c) Copyright 2015 J. Bontes
-
 
    This Source Code Form is subject to the terms of the
    Mozilla Public License, v. 2.0.
    If a copy of the MPL was not distributed with this file,
    You can obtain one at http://mozilla.org/MPL/2.0/.
 
-*******************************************************)
+********************************************************
+Changelog
+
+0.3 Initial versions: complete rewrite using System.Generics.Defaults
+    as a base
+
+Version 0.4
+  - Changed IxxxComparer.Default into a class var, so that using
+    TxxxComparer<T>.Default.Compare is just as fast as saving the
+    Default comparer in a local variable.
+    Useful when using the Comparer in recursive functions where
+    it's awkward to safe it in a local variable.
+  - Removed dependency on system.math
+
+********************************************************)
 
 
 unit System.Generics.FastDefaults;
@@ -40,8 +53,12 @@ type
   // Abstract base class for IComparer<T> implementations, and a provider
   // of default IComparer<T> implementations.
   TComparer<T> = class(TInterfacedObject, IComparer<T>)
+  strict private
+    class constructor Init;
+    class function GetDefault: IComparer<T>; static;
+    class var FDefault: IComparer<T>;  //8x speedup in Array-sort
   public
-    class function Default: IComparer<T>;
+    class property Default: IComparer<T> read FDefault;
     class function Construct(const Comparison: TComparison<T>): IComparer<T>;
     function Compare(const Left, Right: T): Integer; virtual; abstract;
   end;
@@ -53,9 +70,12 @@ type
   // of default IEqualityComparer<T> implementations.
   TEqualityComparer<T> = class(TInterfacedObject, IEqualityComparer<T>)
   strict private
-    //class constructor Init;
+    class constructor Init;
+    class function GetDefault: IEqualityComparer<T>; static;
+    class var FDefault: IEqualityComparer<T>;
   public
-    class function Default: IEqualityComparer<T>; static;
+    //class function Default: IEqualityComparer<T>; static;
+    class property Default: IEqualityComparer<T> read FDefault;
 
     class function Construct(const EqualityComparison: TEqualityComparison<T>;
       const Hasher: THasher<T> = nil): IEqualityComparer<T>;
@@ -139,6 +159,7 @@ type
     VMTArray: array [0..4] of pointer;
   end;
 
+  //Initialization that must not be accessible to the outside world.
   TPrivate = record
   private type
     TDefaultGenericInterface = (giComparer, giEqualityComparer);
@@ -159,7 +180,7 @@ uses
 {$IFDEF MSWindows}
   WinAPI.Windows,
 {$ENDIF}
-  System.Math, System.Generics.Collections, System.Variants,
+  System.Generics.Collections, System.Variants,
   FastCompare
   ;
 
@@ -233,7 +254,8 @@ end;
 
 function GetHashCode_U1(inst: Pointer; const Value: Shortint): Integer;
 begin
-  Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  //Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(Value, SizeOf(Value),0);
 end;
 
 function FCompareI2(inst: Pointer; const Left, Right: Smallint): Integer;
@@ -248,7 +270,8 @@ end;
 
 function GetHashCode_U2(inst: Pointer; const Value: Smallint): Integer;
 begin
-  Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  //Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(Value, SizeOf(Value),0);
 end;
 
 type
@@ -278,13 +301,32 @@ end;
 
 function GetHashCode_U3(inst: Pointer; const Value: T3): Integer;
 begin
-  Result:= MurmurHash3(Value, SizeOf(T3), 0);
+  //Result:= MurmurHash3(Value, SizeOf(T3), 0);
+  Result:= FNV1A_Hash_Meiyan(Value, SizeOf(Value),0);
 end;
 
 function FCompareI4(inst: Pointer; const Left, Right: Integer): Integer;
+{$ifdef CPUX64}
+asm
+  cmp edx,r8d
+  sbb eax,eax
+  cmp r8d,edx
+  adc eax,eax
+end;
+{$elseif defined(CPUX86)}
+asm
+  cmp edx,ecx
+  //sbb eax,eax
+  //cmp ecx,edx
+  //adc eax,eax
+  cmovc eax,$FFFFFFFF
+  cmovgr eax,1
+end;
+{$else}
 begin
   Result:= integer(Left > Right) - integer(Left < Right);
 end;
+{$endif}
 
 function Equals_U4(inst: Pointer; const Left, Right: Integer): Boolean;
 begin
@@ -293,7 +335,8 @@ end;
 
 function GetHashCode_U4(inst: Pointer; const Value: Integer): Integer;
 begin
-  Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  //Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(Value, SizeOf(Value),0);
 end;
 
 function FCompareU1(inst: Pointer; const Left, Right: Byte): Integer;
@@ -318,7 +361,8 @@ end;
 
 function GetHashCode_U8(inst: Pointer; const Value: Int64): Integer;
 begin
-  Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  //Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(Value, SizeOf(Value),0);
 end;
 
 function FCompareI8(inst: Pointer; const Left, Right: Int64): Integer;
@@ -347,7 +391,8 @@ var
 begin
   // Denormalized floats and positive/negative 0.0 complicate things.
   X:= Normalize(Value);
-  Result:= MurmurHash3(X, SizeOf(X), FastCompare.DefaultHashSeed);
+  //Result:= MurmurHash3(X, SizeOf(X), FastCompare.DefaultHashSeed);
+  Result:= FNV1A_Hash_Meiyan(X, SizeOf(Value),0);
 end;
 
 function FCompareR6(inst: Pointer; const Left, Right: Real48): Integer;
@@ -363,7 +408,8 @@ end;
 function GetHashCode_R6(inst: Pointer; const Value: Real48): Integer;
 begin
   //Real48 is always normalized
-  Result:= MurmurHash3(Value, SizeOf(Value), FastCompare.DefaultHashSeed);
+  //Result:= MurmurHash3(Value, SizeOf(Value), FastCompare.DefaultHashSeed);
+  Result:= FNV1A_Hash_Meiyan(Value, SizeOf(Value),0);
 end;
 
 function FCompareR8(inst: Pointer; const Left, Right: Double): Integer;
@@ -382,7 +428,8 @@ var
 begin
   // Denormalized floats and positive/negative 0.0 complicate things.
   X:= Normalize(Value);
-  Result:= MurmurHash3(X, SizeOf(X), FastCompare.DefaultHashSeed);
+  //Result:= MurmurHash3(X, SizeOf(X), FastCompare.DefaultHashSeed);
+  Result:= FNV1A_Hash_Meiyan(X, SizeOf(Value),0);
 end;
 
 
@@ -402,7 +449,8 @@ var
 begin
   // Denormalized floats and positive/negative 0.0 complicate things.
   X:= Normalize(Value);
-  Result:= MurmurHash3(X, SizeOf(X), FastCompare.DefaultHashSeed);
+  //Result:= MurmurHash3(X, SizeOf(X), FastCompare.DefaultHashSeed);
+  Result:= FNV1A_Hash_Meiyan(X, SizeOf(Value),0);
 end;
 
 function FCompareRI8(inst: Pointer; const Left, Right: Comp): Integer;
@@ -417,7 +465,8 @@ end;
 
 function GetHashCode_RI8(inst: Pointer; const Value: Comp): Integer;
 begin
-  Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  //Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(Value, SizeOf(Value),0);
 end;
 
 function FCompareRC8(inst: Pointer; const Left, Right: Currency): Integer;
@@ -432,7 +481,8 @@ end;
 
 function GetHashCode_RC8(inst: Pointer; const Value: Currency): Integer;
 begin
-  Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  //Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(Value, SizeOf(Value),0);
 end;
 
 function FCompareBinary(inst: PSimpleInstance; const Left, Right): Integer;
@@ -447,7 +497,8 @@ end;
 
 function GetHashCode_Binary(inst: PSimpleInstance; const Value): Integer;
 begin
-  Result:= MurmurHash3(Value, inst^.Size, 0);
+  //Result:= MurmurHash3(Value, inst^.Size, 0);
+  Result:= FNV1A_Hash_Meiyan(Value, Inst^.Size,0);
 end;
 
 function Equals_Class(inst: PSimpleInstance; Left, Right: TObject): boolean;
@@ -493,7 +544,8 @@ end;
 
 function GetHashCode_DynArray(inst: PSimpleInstance; Value: Pointer): Integer;
 begin
-  Result:= MurmurHash3(Value^, inst^.Size * DynLen(Value), 0);
+  //Result:= MurmurHash3(Value^, inst^.Size * DynLen(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(Value, Inst^.Size * DynLen(Value),0);
 end;
 
 
@@ -514,41 +566,69 @@ function FComparePS1(inst: PSimpleInstance; const Left, Right: PByte): Integer;
 var
   Len: integer;
 begin
-  Len:= Min(Left[0], Right[0]);
+  Len:= Left[0] and Right[0];
   if Len > 0 then Result:= Left[1] - Right[1]
   else Result:= Left[0] - Right[0];
 end;
 
 function FComparePS2(inst: PSimpleInstance; const Left, Right: PByte): Integer;
-var
-  Len: integer;
 begin
-  Len:= Min(Left[0], Right[0]);
-  if Len > 0 then begin
-    Result:= Left[1] - Right[1];
-    if Result = 0 then Result:= Left[2] - Right[2];
-  end
-  else Result:= Left[0] - Right[0];
+  Result:= Left[0] * Right[0];
+  case Result of
+    0: Result:= Left[0] - Right[0];
+    1: Result:= Left[1] - Right[1];
+    2: begin
+      Result:= Left[1] - Right[1];
+      if Result = 0 then Result:= Left[0] - Right[0];
+    end;
+    4: begin
+      Result:= Left[1] - Right[1];
+      if Result = 0 then Result:= Left[2] - Right[2];
+    end;
+  end;
 end;
 
-function FComparePS3(inst: PSimpleInstance; const Left, Right: PInteger): Integer;
-var
-  LenDiff, Len: integer;
-  i: integer;
-  L,R: integer;
+function FComparePS3(inst: PSimpleInstance; const Left, Right: PByte): Integer;
 begin
-  L:= Left^;
-  R:= Right^;
-  LenDiff:= byte(L) - Byte(R);
-  Len:= Min(Byte(L), byte(R));
-  for i:= 0 to Len-1 do begin
-    L:= L shr 8;
-    R:= R shr 8;
-    Result:= byte(L) - byte(R);
-    if Result <> 0 then exit;
+  Result:= Left[0] * Right[0];
+  case Result of
+    0: Result:= Left[0] - Right[0];
+    1: Result:= Left[1] - Right[1];
+    2,3: begin
+      Result:= Left[1] - Right[1];
+      if Result = 0 then Result:= Left[0] - Right[0];
+    end;
+    4,6: begin
+      Result:= Left[1] - Right[1];
+      if Result = 0 then Result:= Left[2] - Right[2];
+    end;
+    9: begin
+      Result:= Left[1] - Right[1];
+      if Result = 0 then Result:= Left[2] - Right[2];
+      if Result = 0 then Result:= Left[3] - Right[3];
+    end;
   end;
-  Result:= LenDiff;
 end;
+
+
+//function FComparePS3(inst: PSimpleInstance; const Left, Right: PInteger): Integer;
+//var
+//  LenDiff, Len: integer;
+//  i: integer;
+//  L,R: integer;
+//begin
+//  L:= Left^;
+//  R:= Right^;
+//  LenDiff:= byte(L) - Byte(R);
+//  Len:= Min(Byte(L), byte(R));
+//  for i:= 0 to Len-1 do begin
+//    L:= L shr 8;
+//    R:= R shr 8;
+//    Result:= byte(L) - byte(R);
+//    if Result <> 0 then exit;
+//  end;
+//  Result:= LenDiff;
+//end;
 
 function FComparePSn(inst: PSimpleInstance; const Left, Right: OpenString): Integer;
 begin
@@ -593,23 +673,27 @@ end;
 
 function GetHashCode_PS1(inst: PSimpleInstance; const Value: TPS1): Integer;
 begin
-  Result:= MurmurHash3(Value[Low(string)], Length(Value), 0);
+  //Result:= MurmurHash3(Value[Low(string)], Length(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(Value[Low(string)], Length(Value),0);
 end;
 
 function GetHashCode_PS2(inst: PSimpleInstance; const Value: TPS2): Integer;
 begin
-  Result:= MurmurHash3(Value[Low(string)], Length(Value), 0);
+  //Result:= MurmurHash3(Value[Low(string)], Length(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(Value[Low(string)], Length(Value), 0);
 end;
 
 function GetHashCode_PS3(inst: PSimpleInstance; const Value: TPS3): Integer;
 begin
-  Result:= MurmurHash3(Value[Low(string)], Length(Value), 0);
+  //Result:= MurmurHash3(Value[Low(string)], Length(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(Value[Low(string)], Length(Value), 0);
 end;
 
 function GetHashCode_PSn(inst: PSimpleInstance;
   const Value: OpenString): Integer;
 begin
-  Result:= MurmurHash3(Value[Low(string)], Length(Value), 0);
+  //Result:= MurmurHash3(Value[Low(string)], Length(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(Value[Low(string)], Length(Value), 0);
 end;
 
 {$IFNDEF NEXTGEN}
@@ -626,7 +710,8 @@ end;
 
 function GetHashCode_LString(inst: PSimpleInstance; const Value: AnsiString): Integer;
 begin
-  Result:= MurmurHash3(Value[1], Length(Value) * SizeOf(Value[1]), 0);
+  //Result:= MurmurHash3(Value[1], Length(Value) * SizeOf(Value[1]), 0);
+  Result:= FNV1A_Hash_Meiyan(Value[Low(string)], Length(Value) * SizeOf(value[1]),0);
 end;
 {$ENDIF !NEXTGEN}
 // UStrings
@@ -643,7 +728,8 @@ end;
 
 function GetHashCode_UString(inst: PSimpleInstance; const Value: UnicodeString): Integer;
 begin
-  Result:= MurmurHash3(Value[low(string)], Length(Value) * SizeOf(Char), 0);
+  //Result:= MurmurHash3(Value[low(string)], Length(Value) * SizeOf(Char), 0);
+  Result:= FNV1A_Hash_Meiyan(Value[low(string)], Length(Value) * SizeOf(Char), 0);
 end;
 
 type
@@ -688,7 +774,8 @@ end;
 
 function GetHashCode_Method(inst: PSimpleInstance; const Value: TMethodPointer): Integer;
 begin
-  Result:= MurmurHash3(Value, SizeOf(TMethodPointer), 0);
+  //Result:= MurmurHash3(Value, SizeOf(TMethodPointer), 0);
+  Result:= FNV1A_Hash_Meiyan(Value, SizeOf(Value),0);
 end;
 
 // WStrings
@@ -707,7 +794,8 @@ end;
 
 function GetHashCode_WString(inst: PSimpleInstance; const Value: WideString): Integer;
 begin
-  Result:= MurmurHash3(Value[1], Length(Value) * SizeOf(Value[1]), 0);
+  //Result:= MurmurHash3(Value[1], Length(Value) * SizeOf(Value[1]), 0);
+  Result:= FNV1A_Hash_Meiyan(Value[low(Value)], Length(Value) * SizeOf(Value[low(Value)]),0);
 end;
 {$ENDIF !NEXTGEN}
 // Variants
@@ -734,7 +822,8 @@ begin
     v:= PVariant(Value)^;
     Result:= GetHashCode_UString(nil, v);
   except
-    Result:= MurmurHash3(Value^, SizeOf(Variant), 0);
+    //Result:= MurmurHash3(Value^, SizeOf(Variant), 0);
+    Result:= FNV1A_Hash_Meiyan(Value^, SizeOf(Variant),0);
   end;
 end;
 
@@ -753,7 +842,8 @@ end;
 
 function GetHashCode_Pointer(inst: Pointer; const Value: NativeUInt): Integer;
 begin
-  Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  //Result:= MurmurHash3(Value, SizeOf(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(Value, SizeOf(Value),0);
 end;
 
 { TSingletonImplementation }
@@ -814,8 +904,6 @@ type
   end;
 
 function TOrdinalStringComparer.Compare(const Left, Right: string): Integer;
-var
-  Len, lenDiff: Integer;
 begin
   Result:= CompareUnicodeStr(Left, Right);
 end;
@@ -827,7 +915,8 @@ end;
 
 function TOrdinalStringComparer.GetHashCode(const Value: string): Integer;
 begin
-  Result:= MurmurHash3(PChar(Value)^, SizeOf(Char) * Length(Value), 0);
+  //Result:= MurmurHash3(PChar(Value)^, SizeOf(Char) * Length(Value), 0);
+  Result:= FNV1A_Hash_Meiyan(PChar(Value)^, SizeOf(Char) * Length(Value),0);
 end;
 
 { TStringComparer }
@@ -848,7 +937,6 @@ end;
 function TOrdinalIStringComparer.Compare(const Left, Right: string): Integer;
 var
   l, r: string;
-  Len, lenDiff: Integer;
 begin
   l:= AnsiLowerCase(Left);
   r:= AnsiLowerCase(Right);
@@ -857,7 +945,6 @@ end;
 
 function TOrdinalIStringComparer.Equals(const Left, Right: string): Boolean;
 var
-  Len: Integer;
   l, r: string;
 begin
   l:= AnsiLowerCase(Left);
@@ -870,7 +957,8 @@ var
   S: string;
 begin
   S:= AnsiLowerCase(Value);
-  Result:= MurmurHash3(PChar(S)^, SizeOf(Char) * Length(S), 0);
+  //Result:= MurmurHash3(PChar(S)^, SizeOf(Char) * Length(S), 0);
+  Result:= FNV1A_Hash_Meiyan(PChar(S)^, SizeOf(Char) * Length(S),0);
 end;
 
 { TIStringComparer }
@@ -885,26 +973,6 @@ begin
   if FOrdinal = nil then FOrdinal:= TOrdinalIStringComparer.Create;
   Result:= TStringComparer(FOrdinal);
 end;
-
-//function ExtendedHashImpl(Value: Extended): Integer;
-//begin
-//  Result:= MurmurHash3(Normalize(Value), SizeOf(Value), 0);
-//end;
-//
-//function ExtendedHash(Value: Pointer; Size: Integer): Integer; inline;
-//begin
-//  Result:= ExtendedHashImpl(PExtended(Value)^);
-//end;
-//
-//function DoubleHash(Value: Pointer; Size: Integer): Integer; inline;
-//begin
-//  Result:= ExtendedHashImpl(PDouble(Value)^);
-//end;
-//
-//function SingleHash(Value: Pointer; Size: Integer): Integer; inline;
-//begin
-//  Result:= ExtendedHashImpl(PSingle(Value)^);
-//end;
 
 { TComparer<T> }
 
@@ -933,7 +1001,6 @@ class function TPrivate.InitCompareVMT(Kind: TTypeKind; Info: PTypeInfo; Size: N
 
 begin
   case Kind of
-    //tkWString: Result:= (CompareStr(WideString(l.p), WideString(r.p)));
     tkWString: SetResult(@FCompareWString, ctWS);
     tkUString: SetResult(@FCompareUString, ctUS);
     tkLString: SetResult(@FCompareLString, ctLS);
@@ -1077,7 +1144,7 @@ begin
   end;
 end;
 
-class function TComparer<T>.Default: IComparer<T>;
+class function TComparer<T>.GetDefault: IComparer<T>;
 var
   Size: integer;
   Signed: boolean;
@@ -1099,14 +1166,18 @@ begin
   Result:= IComparer<T>(TPrivate.GetCompareInterface(GetTypeKind(T), TypeInfo(T), Size, Signed));
 end;
 
+class constructor TComparer<T>.Init;
+begin
+  FDefault:= GetDefault;
+end;
+
 class function TComparer<T>.Construct(const Comparison: TComparison<T>): IComparer<T>;
 begin
   Result:= TDelegatedComparer<T>.Create(Comparison);
 end;
 
-
 { TEqualityComparer<T> }
-class function TEqualityComparer<T>.Default: IEqualityComparer<T>;
+class function TEqualityComparer<T>.GetDefault: IEqualityComparer<T>;
 var
   Size: integer;
   Signed: boolean;
@@ -1126,9 +1197,15 @@ begin
   Result:= IEqualityComparer<T>(TPrivate.GetEqualityInterface(GetTypeKind(T), TypeInfo(T), Size));
 end;
 
+class constructor TEqualityComparer<T>.Init;
+begin
+  FDefault:= GetDefault;
+end;
+
 class function TPrivate.DefaultHash<T>(const Value: T): Integer;
 begin
-  Result:= MurmurHash3(Value, SizeOf(T));
+  //Result:= MurmurHash3(Value, SizeOf(T));
+  Result:= FNV1A_Hash_Meiyan(Value, SizeOf(T),0);
 end;
 
 class function TEqualityComparer<T>.Construct(const EqualityComparison
