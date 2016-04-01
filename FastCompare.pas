@@ -5,6 +5,7 @@ interface
 uses
   System.SysUtils;
 
+//Uncomment if you want to test purepascal versions.
 // {$define purepascal}
 
 const
@@ -86,6 +87,8 @@ function Normalize(const X: extended): extended; overload;
 {$endif}
 
 
+
+
 implementation
 
 uses
@@ -134,8 +137,7 @@ end;
 
 function IsZeroSingle(const Value: single): boolean; inline;
 begin
-  Result:= (PInteger(@Value)^ = 0)
-        or (PInteger(@Value)^ = $80000000);
+  Result:= (PInteger(@Value)^ and $80000000) = 0;
 end;
 
 function IsZeroDouble(const Value: Double): boolean; inline;
@@ -1664,6 +1666,7 @@ end;
 {$ENDIF}
 {$POINTERMATH on}
 
+{$WARNINGS OFF}
 // Meiyan means Beauty, Charming Eyes or most precisely: SOULFUL EYES.
 function PascalFNV1A_Hash_Meiyan(const HashData; Len: integer; Seed: integer = 0): integer;
 const
@@ -1706,7 +1709,7 @@ begin
     Tail:= Tail xor Temp;
     Hash32:= (Hash32 xor Temp) * prime;
   end;
-  //Result:= Hash32 xor (Hash32 shr 16);
+  //Extra shuffle
   Tail:= (Tail * 17) + n;
   //Hash32:= Hash32 + Tail;
   Result:= (Hash32 + Tail) xor (Hash32 shr 16);
@@ -1734,15 +1737,11 @@ const
     push  EBX
     push  ESI
     push  EDI
-//    push  EDI
     add   ECX, offset_basis
     add   EAX,EDX
     lea   ESI,[EDX-8]
     neg   ESI
     jg @remaining
-//    If the collisions are worse than MurmurHash, than see if we can add a *17
-//    or a *5 to scramble the bits some more
-//    lea   EBX,[EDI*4+EBX+n]   //*5
   @Loop8:
     mov   EBX,[EAX+ESI-8]
     rol   EBX,5
@@ -1789,31 +1788,17 @@ const
     xor   ECX,EBX
     imul  ECX,ECX,prime
 @wrapup:
+//  @wrapup:
+//    //Reduce collisions for short keys.
+//    //The extra instructions are hidden in the latency of imul
     lea   EAX,[EDI*8]
     lea   EBX,[EAX*2+EDI+n]
     lea   EAX,[EBX+ECX]
     shr   ECX,16
     xor   EAX,ECX
-//  @wrapup:
-//    mov   EAX,ECX
-//    shr   ECX,16
-//    xor   EAX,ECX
     pop   EDI
     pop   ESI
     pop   EBX
-//  @wrapup:
-//    //Reduce collisions for short keys.
-//    //The extra instructions are hidden in the latency of imul
-//    lea   EAX,[EBX*8]                          //new
-//    lea   EBX,[EAX*2+EBX+n] //*17 + prime      //new
-//    lea   EAX,[ECX+EBX] //                     //was mov EAX,ECX
-//    //lea   EAX,[ECX]
-//    shr   ECX,16
-//    xor   EAX,ECX
-////    pop   EDI              //AAB311A1,
-//    pop   ESI
-//    pop   EBX
-//end;
 end;
 {$ENDIF}
 {$IFDEF CPUX64}
@@ -1886,7 +1871,6 @@ asm
     lea   EAX,[R10d*8]
     lea   ECX,[EAX*2+R10d+n]
     lea   EAX,[ECX+R8d]
-    //mov   EAX,R8d
     shr   R8d,16
     xor   EAX,R8d
 end;
@@ -1964,6 +1948,7 @@ begin
   Result:= Result * cPrime32x3;
   Result:= Result xor (Result shr 16);
 end;
+{$WARNINGS ON}
 
 function AsmxxHash32Calc(const HashData; Len: integer; Seed: integer = 0): integer;
 {$ifdef CPUX64}
@@ -2221,7 +2206,7 @@ var
   pLimit, pEnd, ABuffer: Pointer;
 begin
   ABuffer:= @HashData;
-  NativeUint(pEnd):= NativeUInt(ABuffer) + Len;
+  Nativeint(pEnd):= NativeInt(ABuffer) + Len;
 
   if Len >= 32 then begin
     v1:= Seed + cPrime64x1 + cPrime64x2;
@@ -2405,7 +2390,8 @@ end;
 
 function CompareFast(const Left, Right: integer): integer;
 begin
-  Result:= Left - Right;
+  //Result:= Left - Right;
+  Result:= integer(Left > Right) - integer(Left < Right);
 end;
 
 function CompareFast(const Left, Right: cardinal): integer;
