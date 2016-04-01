@@ -12,7 +12,9 @@ uses
   System.Diagnostics,
   System.Generics.Collections,
   System.Classes,
-  SynCommons;
+  Unit1 in 'Unit1.pas';
+
+//SynCommons;
 
 function MakeZip(Number: integer): string;
 begin
@@ -31,6 +33,14 @@ type
   TZip = array [0..ZipMax] of string;
 
   TMyHash = function(const Data; Len, InitData: Integer): Integer;
+
+  TBitcount = array[0..1] of integer;
+  TBitcounts = record
+    Counts: array[0..31] of TBitcount;
+    procedure Clear;
+    procedure Add(input: integer);
+    procedure Print(const Header: string = '');
+  end;
 
 var
   LowBucket: TBucket;
@@ -53,7 +63,6 @@ begin
   SetLength(HashOutcome, ZipMax+1);
 end;
 
-
 var
   Passwords: TStringlist;
 
@@ -67,7 +76,6 @@ begin
     h:= Hasher((@Passwords[i][1])^, Length(Passwords[i])*SizeOf(Char), FastCompare.DefaultHashSeed);
   end;
 end;
-
 
 procedure HashPasswords(Hasher: TMyHash; Flavor: THashKind);
 var
@@ -91,6 +99,7 @@ var
   H: integer;
   L: integer;
   //Zip: string;
+  BitBias: TBitCounts;
 begin
   for i := 0 to ZipMax do begin
     //Zip:= MakeZip(i);
@@ -101,11 +110,16 @@ begin
     Inc(LowBucket[L]);
     Inc(HighBucket[H]);
   end;
+  BitBias.Clear;
+  for i := 0 to ZipMax do begin
+    BitBias.Add(HashOutcome[i]);
+  end;
+  BitBias.Print;
 end;
 
 function HashCrc32(const Data; Len, InitData: integer): integer;
 begin
-  Result:= SynCommons.crc32cfast(InitData, @Data, Len);
+  //Result:= SynCommons.crc32cfast(InitData, @Data, Len);
 end;
 
 procedure HashNumbers(Hasher: TMyHash; Flavor: THashKind);
@@ -137,12 +151,12 @@ begin
   Prev:= 0;
   Count:= 0;
   MaxCount:= 0;
-  MaxCollision:= 0;
+  //MaxCollision:= 0;
   for i:= 0 to High(Outcome) do begin
     if Outcome[i] = Prev then Inc(Count);
     if Count > MaxCount then begin
       MaxCount:= Count;
-      MaxCollision:= Outcome[i];
+      //MaxCollision:= Outcome[i];
     end
     else begin
       Count:= 0;
@@ -183,6 +197,7 @@ var
   Watch: TStopWatch;
   name: string;
   Stats: TCollisionStats;
+  BitBias: TBitcounts;
 begin
   for H := hkBob to hkxxHash32 do begin
     InitBuckets;
@@ -218,6 +233,45 @@ begin
   end;  {for}
 end;
 
+
+{ TBitcounts }
+
+procedure TBitcounts.Add(input: integer);
+var
+  i: Integer;
+  Bit: integer;
+begin
+  Bit:= 1;
+  for i := 0 to 31 do begin
+    if (input and bit) <> 0 then Inc(Counts[i][1])
+    else Inc(Counts[i][0]);
+    Bit:= Bit shl 1;
+  end;
+end;
+
+procedure TBitcounts.Clear;
+begin
+  FillChar(Counts, SizeOf(Counts), #0);
+end;
+
+procedure TBitcounts.Print(const Header: string = '');
+var
+  Total: integer;
+  Percentage: integer;
+  i: Integer;
+  Zeros, Ones: string;
+begin
+  if Header <> '' then begin
+    WriteLn('Bit distribution of '+Header);
+  end;
+  Total:= Counts[0][0] + Counts[0][1];
+  for i := 0 to 31 do begin
+    Percentage:= Round((Counts[i][0] / Total) * 100);
+    Zeros:= DupeString('.', Percentage div 2);
+    Ones:= DupeString('#', (100 - Percentage) div 2);
+    WriteLn(RightStr('0'+IntToStr(i),2)+' '+Zeros+Ones+' '+IntToStr(Percentage)+'% zeros');
+  end;
+end;
 
 begin
   WriteLn('Starting testing');
