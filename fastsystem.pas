@@ -63,7 +63,7 @@ asm
               .align 16
               movzx r8,r8b           //There's no need to optimize for count <= 3
               mov rax,$0101010101010101
-              mov r9d,edx
+              mov r9,rdx
               imul rax,r8            //fill rax with value.
               cmp edx,59             //Use simple code for small blocks.
               jl  @Below32
