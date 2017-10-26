@@ -16,7 +16,7 @@ type
     procedure SetLength(Value: NativeUint); inline;
     procedure ExpandCapacity(NewLength: NativeUInt);
     procedure ReduceCapacity;
-    procedure CheckBounds(Index: NativeUint);
+    procedure CheckBounds(Index: NativeUint); inline;
     function _Replace(Index: NativeUint; const Old, New: string): Boolean;
   protected
     FData: TCharArray;
@@ -58,7 +58,7 @@ type
     function AppendFormat(const Format: string; const Args: array of const): TStringBuilder; overload;
     function AppendLine: TStringBuilder; overload; inline;
     function AppendLine(const Value: string): TStringBuilder; overload; inline;
-    procedure Clear;
+    procedure Clear; inline;
     procedure CopyTo(SourceIndex: NativeUInt; const Destination: TCharArray; DestinationIndex, Count: NativeUInt);
     function EnsureCapacity(aCapacity: NativeUInt): NativeUInt;
     function Equals(StringBuilder: TStringBuilder): Boolean; reintroduce;
@@ -121,9 +121,14 @@ end;
 function TStringBuilder.Append(const Value: string): TStringBuilder;
 var
   L: NativeUInt;
+  P: PInteger;
 begin
   Result:= Self;
-  L:= System.Length(Value);
+  //L:= System.Length(Value);
+  P:= PInteger(Value);
+  if P = nil then exit;
+  Dec(P);
+  L:= P^;
   if (Length + L) > Capacity then ExpandCapacity(Length + L);
   Move(pointer(Value)^, FData[Length], L * SizeOf(Char));
   FLength := FLength + L;
@@ -141,10 +146,8 @@ var
   I: Integer;
 begin
   Result := self;
-
   for I := 0 to System.Length(Value) - 1 do
-    if Value[I] = #0 then
-      Break;
+    if Value[I] = #0 then Break;
 
   Append(Value, 0, I);
 end;
@@ -173,12 +176,17 @@ end;
 
 function TStringBuilder.Append(const Value: string; StartIndex,
   Count: NativeUInt): TStringBuilder;
+var
+  i: integer;
+  L: integer;
 begin
   if StartIndex + Count > System.Length(Value) then
     raise ERangeError.CreateResFmt(@SListIndexError, [StartIndex]);
-
-  Length := Length + Count;
-  Move(Value[StartIndex + Low(string)], FData[Length - Count], Count * SizeOf(Char));
+  L:= System.Length(Value) - StartIndex + Low(string);
+  Length := Length + (L * Count);
+  for i:= Count -1 downto 0 do begin
+    Move(Value[StartIndex + Low(string)], FData[Length - i * L], Count * SizeOf(Char));
+  end;
   Result := Self;
 end;
 
@@ -428,13 +436,15 @@ begin
 end;
 
 function TStringBuilder.Insert(Index: NativeUInt; const Value: string): TStringBuilder;
+var
+  L: integer;
 begin
   if Index > Length then
     raise ERangeError.CreateResFmt(@SListIndexError, [Index]);
-
-  Length := Length + System.Length(Value);
-  Move(FData[Index], FData[Index + System.Length(Value)], (Length - System.Length(Value) - Index) * SizeOf(Char));
-  Move(Value[Low(string)], FData[Index], System.Length(Value) * SizeOf(Char));
+  L:= System.Length(Value);
+  Length := Length + L;
+  Move(pointer(FData[Index])^, FData[Index + L], (Length - L - Index) * SizeOf(Char));
+  Move(pointer(Value)^, FData[Index], L * SizeOf(Char));
   Result := Self;
 end;
 
@@ -448,15 +458,16 @@ begin
   Result:= Insert(Index, IntToStr(Value));
 end;
 
-function TStringBuilder.Insert(Index: NativeUInt;
-  const Value: TCharArray): TStringBuilder;
+function TStringBuilder.Insert(Index: NativeUInt; const Value: TCharArray): TStringBuilder;
+var
+  L: NativeUint;
 begin
   if Index > Length then
     raise ERangeError.CreateResFmt(@SListIndexError, [Index]);
-
-  Length := Length + System.Length(Value);
-  Move(FData[Index], FData[Index + System.Length(Value)], System.Length(Value) * SizeOf(Char));
-  Move(Value[0], FData[Index], System.Length(Value) * SizeOf(Char));
+  L:= System.Length(Value);
+  Length := Length + L;
+  Move(FData[Index], FData[Index + L], L * SizeOf(Char));
+  Move(pointer(Value)^, FData[Index], L * SizeOf(Char));
   Result := Self;
 end;
 
@@ -505,10 +516,18 @@ function TStringBuilder.Insert(Index: NativeUInt; const Value: string;
   Count: NativeUInt): TStringBuilder;
 var
   I: Integer;
+  S: string;
+  L: integer;
+  P: PChar;
 begin
-  for I := 0 to Count - 1 do
-    Insert(Index, Value);
-  Result := Self;
+  L:= System.Length(Value);
+  System.SetLength(S, L);
+  P:= PChar(S);
+  for I := 0 to Count - 1 do begin
+    Move(pointer(Value)^, P^, L * SizeOf(Char));
+    Inc(P,L);
+  end;
+  Result:= Insert(Index, S);
 end;
 
 function TStringBuilder.Insert(Index: NativeUInt; const Value: TCharArray; StartIndex,
