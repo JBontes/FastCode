@@ -16,11 +16,13 @@ type
     //function GetLength: Integer; inline;
     procedure SetLength(Value: NativeUint); inline;
     //procedure ExpandCapacity(NewLength: NativeUInt);
-    //procedure ReduceCapacity;
+    procedure ReduceCapacity; inline;
     procedure CheckBounds(Index: NativeUint); inline;
     function _Replace(Index: NativeUint; const Old, New: string): Boolean;
     //prevent ref count and exception frame for local strings.
     function _Append(const Value: PChar; Length: cardinal): TStringBuilder; overload;
+    function _Append(const Value: TCharArray; StartIndex,
+      CharCount: NativeUInt): TStringBuilder; overload;
   protected
     FData: TCharArray;
     //FInsertPoint: PChar;
@@ -48,7 +50,7 @@ type
     function Append(const Value: Shortint): TStringBuilder; overload; {$ifndef cpux64} inline; {$endif}
     function Append(const Value: Single): TStringBuilder; overload; inline;
     function Append(const Value: UInt64): TStringBuilder; overload; {$ifndef cpux64} inline; {$endif}
-    function Append(const Value: TCharArray): TStringBuilder; overload;
+    function Append(const Value: TCharArray): TStringBuilder; overload; inline;
     function Append(const Value: Word): TStringBuilder; overload; {$ifndef cpux64} inline; {$endif}
     function Append(const Value: Cardinal): TStringBuilder; overload; {$ifndef cpux64} inline; {$endif}
 {$IFNDEF NEXTGEN}
@@ -56,7 +58,7 @@ type
     function Append(const Value: RawByteString): TStringBuilder; overload; inline;
 {$ENDIF !NEXTGEN}
     function Append(const Value: Char; RepeatCount: NativeUInt): TStringBuilder; overload;
-    function Append(const Value: TCharArray; StartIndex, CharCount: NativeUInt): TStringBuilder; overload;
+    function Append(const Value: TCharArray; StartIndex, CharCount: NativeUInt): TStringBuilder; overload; inline;
     function Append(const Value: string; StartIndex, Count: NativeUInt): TStringBuilder; overload;
 
     function AppendFormat(const Format: string; const Args: array of const): TStringBuilder; overload;
@@ -64,7 +66,7 @@ type
     function AppendLine(const Value: string): TStringBuilder; overload; inline;
     procedure Clear; inline;
     procedure CopyTo(SourceIndex: NativeUInt; const Destination: TCharArray; DestinationIndex, Count: NativeUInt);
-    //function EnsureCapacity(aCapacity: NativeUInt): NativeUInt;
+    function EnsureCapacity(aCapacity: NativeUInt): NativeUInt;
     function Equals(StringBuilder: TStringBuilder): Boolean; reintroduce;
 
     function Insert(Index: NativeUInt; const Value: Boolean): TStringBuilder; overload; inline;
@@ -154,6 +156,7 @@ function _IntToStr(const Value: Int64; var Dump: TAnsiCharStorage): PAnsiChar; o
 //rdx = dump
 //rax = length
 asm
+        .noframe
         push      rcx
         mov       r8,rcx
         neg       rcx
@@ -213,58 +216,65 @@ function _IntToStr(const Value: Int64; var Dump: TCharStorage): PChar; overload;
 //rdx = dump
 //rax = length
 asm
-        push      rcx
-        mov       r8,rcx
-        neg       rcx
-        cmovs     rcx,r8
-        lea       r11, [rdx+52]
-        push      r11   //save the end of the data
-        lea       r10, [rip+TwoDigitLookup]
-        //mov       word ptr [rdx+60], 0
-        cmp       rcx, 100
-        jb        @tail
-        mov       r8, $47ae147ae147ae15
+  .noframe
+  push      rcx
+  mov       r8,rcx
+  neg       rcx
+  cmovs     rcx,r8          //Value = abs(value)
+  lea       r11, [rdx+26*2]
+  push      r11             //save the end of the data for length calculations later
+  lea       r10, [rip+TwoDigitLookup]
+  //mov       word ptr [rdx+60], 0  //no need, we pass the length explicitly
+  cmp       rcx, 100        //process two digits at a time
+  jb        @tail           //only two digits, goto tail.
+  mov       r8, $47ae147ae147ae15  //division using multiplication by reciprocal
 @loop:
-        mov       rax, rcx
-        mov       r9d, ecx
-        mul       r8
-        sub       rcx, rdx
-        shr       rcx, 1
-        add       rdx, rcx
-        mov       rcx, rdx
-        shr       rcx, 6
-        imul      rax, rcx, -100
-        add       r9,  rax
-        mov       eax, [r10+r9*4]
-        mov       [r11], eax
-        sub       r11, 4
-        cmp       rcx, 100
-        jae       @loop
+  mov       rax, rcx
+  mov       r9d, ecx
+  mul       r8
+  sub       rcx, rdx
+  shr       rcx, 1
+  add       rdx, rcx
+  mov       rcx, rdx
+  shr       rcx, 6
+  imul      rax, rcx, -100  //i = remainder mod 100
+  add       r9,  rax
+  mov       eax, [r10+r9*4] //digits = lookup[i]
+  mov       [r11], eax      //add to digits to the string
+  sub       r11, 4
+  cmp       rcx, 100        //repeat ...
+  jae       @loop           //... until remainder < 100
 @tail:
-        mov       eax, [r10+rcx*4]
-        mov       edx,$2d   //'-'
-        mov       [r11], eax
-        xor       eax, eax
-        cmp       ecx, 10
-        pop       r10
-        pop       rcx
-        setb      al
-        add       r10, 4
-        shl       rcx, 1     //sign flag to carry flag
-        mov       [r11+rax*2-2],dx   //put the '-', just in case
-        sbb       rax,0      //include the '-' if applicable
-        lea       rax, [r11+rax*2]
-        sub       r10,rax
-        mov       [rax-4],r10d
-        ret
+  mov       eax,[r10+rcx*4] //lookup 2 digits
+  mov       edx,$2d         //sign = '-'
+  mov       [r11], eax      //write 2 digits
+  xor       eax, eax
+  cmp       ecx, 10         //do we have a leading zero?
+  pop       r10
+  pop       rcx
+  setb      al              //yes, add one
+  add       r10, 4          //correct starting pos
+  shl       rcx, 1          //rcx = 1 if number was negative
+  mov       [r11+rax*2-2],dx//put the '-', just in case
+  sbb       rax,0           //correct the start pos, if we have a '-' in front
+  lea       rax, [r11+rax*2]//return the start of the string
+  sub       r10,rax         //r10 = length
+  mov       [rax-4],r10d    //write the length before the string
+  ret
 end;
 {$endif}
 
 {$pointermath on}
 
+procedure TStringBuilder.ExpandCapacity(const AdditionalSize: Integer);
+begin
+  FCapacity := FLength + AdditionalSize + MALLOC_SIZE;
+  System.SetLength(FData, FCapacity);
+end;
+
 procedure TStringBuilder.SetLength(Value: NativeUInt);
 begin
-  if Value > Capacity then ExpandCapacity(Value - Capacity); //ExpandCapacity(Value);
+  if Value > Capacity then ExpandCapacity(Value - Capacity);
   FLength:= Value;
 end;
 
@@ -284,33 +294,27 @@ begin
   FLength := FLength + L;
 end;
 
-
 function TStringBuilder.Append(const Value: UInt64): TStringBuilder;
-{$ifdef cpux64}
-var
-  P: PChar;
-  L: integer;
-  Storage: TCharStorage;
-begin
-  P:= _IntToStr(Value, Storage);
-  L:= PInteger(P)[-1];
-  Result:= _Append(P, L);
-end;
-{$else}
+////_IntToStr does not handle UInt64
+//{$ifdef CPUx64}
+//var
+//  P: PChar;
+//  L: integer;
+//  Storage: TCharStorage;
+//begin
+//  P:= _IntToStr(Value, Storage);
+//  L:= PInteger(P)[-1];
+//  Result:= _Append(P, L);
+//end;
+//{$else}
 begin
   Result:= Append(IntToStr(Value));
 end;
-{$endif}
+//{$endif}
 
 function TStringBuilder.Append(const Value: TCharArray): TStringBuilder;
-var
-  I: Integer;
 begin
-  Result := self;
-  for I := 0 to System.Length(Value) - 1 do
-    if Value[I] = #0 then Break;
-
-  Append(Value, 0, I);
+  Result:= _Append(Value, 0, System.Length(Value));
 end;
 
 function TStringBuilder.Append(const Value: Single): TStringBuilder;
@@ -335,18 +339,21 @@ begin
 end;
 {$endif}
 
-function TStringBuilder.Append(const Value: TCharArray; StartIndex,
+function TStringBuilder._Append(const Value: TCharArray; StartIndex,
   CharCount: NativeUInt): TStringBuilder;
 begin
-  if StartIndex + CharCount > System.Length(Value) then
-    raise ERangeError.CreateResFmt(@SListIndexError, [StartIndex]);
-
-
   Length := Length + CharCount;
   Move(Value[StartIndex], FData[Length - CharCount], CharCount * SizeOf(Char));
   Result := self;
 end;
 
+function TStringBuilder.Append(const Value: TCharArray; StartIndex,
+  CharCount: NativeUInt): TStringBuilder;
+begin
+  if StartIndex + CharCount > System.Length(Value) then
+    raise ERangeError.CreateResFmt(@SListIndexError, [StartIndex]);
+  Result:= _Append(Value, StartIndex, CharCount);
+end;
 
 function TStringBuilder.Append(const Value: string; StartIndex,
   Count: NativeUInt): TStringBuilder;
@@ -459,7 +466,6 @@ begin
 end;
 {$ENDIF}
 
-
 function TStringBuilder.Append(const Value: Shortint): TStringBuilder;
 {$ifdef cpux64}
 var
@@ -553,7 +559,7 @@ function TStringBuilder.Append(const Value: Boolean): TStringBuilder;
 begin
   case Value of
     true: Result:= Append('True');
-    false: Result:= Append('False');
+    else Result:= Append('False');
   end;
 end;
 
@@ -622,7 +628,6 @@ begin
 end;
 {$endif}
 
-
 function TStringBuilder.Append(const Value: Integer): TStringBuilder;
 {$ifdef cpux64}
 var
@@ -647,13 +652,14 @@ end;
 
 function TStringBuilder.AppendLine: TStringBuilder;
 const
-  LineBreak = $0D000A00;
+  LineBreak = $0D000A;
 var
   L: NativeUInt;
 begin
   L:= FLength;
-  Length:= Length + 2;
+  Length:= L + 2;
   PInteger(@FData[L])^:= LineBreak;
+  Result:= Self;
 end;
 
 function TStringBuilder.AppendLine(const Value: string): TStringBuilder;
@@ -743,16 +749,16 @@ begin
   Append(Value);
 end;
 
-//function TStringBuilder.EnsureCapacity(aCapacity: NativeUInt): NativeUInt;
-//begin
-//  if aCapacity > MaxCapacity then
-//    raise ERangeError.CreateResFmt(@SListIndexError, [aCapacity]);
-//
-//  if Capacity < aCapacity then
-//    Capacity := aCapacity;
-//
-//  Result := Capacity;
-//end;
+function TStringBuilder.EnsureCapacity(aCapacity: NativeUInt): NativeUInt;
+begin
+  if aCapacity > MaxCapacity then
+    raise ERangeError.CreateResFmt(@SListIndexError, [aCapacity]);
+
+  if FCapacity < aCapacity then
+    Capacity := aCapacity;
+
+  Result := Capacity;
+end;
 
 function TStringBuilder.Equals(StringBuilder: TStringBuilder): Boolean;
 begin
@@ -761,30 +767,29 @@ begin
     CompareMem(@FData[0], @StringBuilder.FData[0], Length * SizeOf(Char));
 end;
 
-function Max(a,b: NativeUInt): NativeUInt; overload; inline;
-begin
-  //jumpless max.
-  Result:= a xor ((a xor b) and -integer(a < b));
-  //Result = a.
-  //if (a >= b) then x:= 0; Result:= a xor 0;
-  //if (a < b) then x:= -1; Result:= a xor (a xor b) and -1
-  //                                                 ^^^^^^ nop
-  //                                 ^^^^^^^^^^^^^^^swap a and b
-  //                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Result:= b;
-end;
-
-function Min(a,b: NativeUInt): NativeUInt; overload; inline;
-begin
-  Result:= a xor ((a xor b) and -integer(a > b));
-end;
+//function Max(a,b: NativeUInt): NativeUInt; overload; inline;
+//begin
+//  //jumpless max.
+//  Result:= a xor ((a xor b) and -integer(a < b));
+//  //Result = a.
+//  //if (a >= b) then x:= 0; Result:= a xor 0;
+//  //if (a < b) then x:= -1; Result:= a xor (a xor b) and -1
+//  //                                                 ^^^^^^ nop
+//  //                                 ^^^^^^^^^^^^^^^swap a and b
+//  //                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Result:= b;
+//end;
+//
+//function Min(a,b: NativeUInt): NativeUInt; overload; inline;
+//begin
+//  Result:= a xor ((a xor b) and -integer(a > b));
+//end;
 
 //procedure TStringBuilder.ExpandCapacity(NewLength: NativeUInt);
 //var
 //  NewCapacity: NativeUint;  //do not worry about overflow.
 //begin
-//  //NewCapacity := Max(Capacity * 2, (NewLength * 3 div 2));
-//  //Capacity:= Min(NewCapacity, MaxCapacity);
-//
+//  NewCapacity := Max(Capacity * 2, (NewLength * 3 div 2));
+//  Capacity:= Min(NewCapacity, MaxCapacity);
 //end;
 
 
@@ -794,11 +799,6 @@ begin
 
   Result := FData[Index];
 end;
-
-//function TStringBuilder.GetMaxCapacity: Integer;
-//begin
-//  Result := FMaxCapacity;
-//end;
 
 function TStringBuilder.Insert(Index: NativeUInt; const Value: TObject): TStringBuilder;
 begin
@@ -941,18 +941,10 @@ begin
   Result:= Insert(Index, UIntToStr(Value));
 end;
 
-//procedure TStringBuilder.ReduceCapacity;
-//var
-//  NewCapacity: Integer;
-//begin
-//  if Length > Capacity div 4 then
-//    Exit;
-//
-//  NewCapacity := Capacity div 2;
-//  if NewCapacity < Length then
-//    NewCapacity := Length;
-//  Capacity := NewCapacity;
-//end;
+procedure TStringBuilder.ReduceCapacity;
+begin
+  if Length >= (Capacity div 4) then ExpandCapacity(0);
+end;
 
 function TStringBuilder.Remove(StartIndex, RemLength: Integer): TStringBuilder;
 begin
@@ -965,7 +957,7 @@ begin
       Move(FData[StartIndex + RemLength], FData[StartIndex], (Length - (StartIndex + RemLength)) * SizeOf(Char));
     Length := Length - RemLength;
 
-    //ReduceCapacity;
+    ReduceCapacity;
   end;
   Result := Self;
 end;
@@ -1074,19 +1066,12 @@ begin
   FCapacity:= Value;
 end;
 
-procedure TStringBuilder.ExpandCapacity(const AdditionalSize: Integer);
-begin
-  FCapacity := FLength + AdditionalSize + MALLOC_SIZE;
-  System.SetLength(FData, FCapacity);
-end;
-
 procedure TStringBuilder.SetChars(Index: NativeUInt; Value: Char);
 begin
   CheckBounds(Index);
 
   FData[Index] := Value;
 end;
-
 
 function TStringBuilder.ToString: string;
 begin
