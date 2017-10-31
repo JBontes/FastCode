@@ -125,133 +125,138 @@ const
      '80','81','82','83','84','85','86','87','88','89',
      '90','91','92','93','94','95','96','97','98','99');
 
+    TwoDigitLookupAnsi: packed array[0..99] of array[1..2] of AnsiChar =
+    ('00','01','02','03','04','05','06','07','08','09',
+     '10','11','12','13','14','15','16','17','18','19',
+     '20','21','22','23','24','25','26','27','28','29',
+     '30','31','32','33','34','35','36','37','38','39',
+     '40','41','42','43','44','45','46','47','48','49',
+     '50','51','52','53','54','55','56','57','58','59',
+     '60','61','62','63','64','65','66','67','68','69',
+     '70','71','72','73','74','75','76','77','78','79',
+     '80','81','82','83','84','85','86','87','88','89',
+     '90','91','92','93','94','95','96','97','98','99');
+
 { TStringBuilder }
 type
-  TCharStorage = array [1..22] of char;
+  TCharStorage = array [1..28] of char;
+  TAnsiCharStorage = array [1..28] of AnsiChar;
 
 {$ifdef cpux64}
-function _IntToStr(const Value: Int64; var Storage: TCharStorage): PChar;
-  //rcx = value
-  //rdx - temp for multiply
-  //rax - temp for multiply
-  //r8 - temp for multiply
+/// <summary>
+///  Convert value into a string.
+///  Negative values will have a '-' in front.
+///  Returns the first char of the string.
+///  At Result -4 a length encoding will be stored.
+/// </summary>
+function _IntToStr(const Value: Int64; var Dump: TAnsiCharStorage): PAnsiChar; overload;
+//rcx = value
+//rdx = dump
+//rax = length
 asm
-    .noframe
-    mov   r8,rcx               //r8 = abs(value)
-    mov   word ptr [rdx+44-2],0 //write trailing zero.
-    push  rdi                  //rdi = upper 16 decimals
-    push  rsi                  //rsi = lower 4 decimals
-    push  rcx                  //save sign(value) for later
-    neg   rcx                  //abs(value)
-    push  rdx                  //save storage for later.
-    cmovns r8,rcx              //r8 = abs value
-    mov   edi, 0               //high digits = 0
-    mov   esi, 0               //low digits = 0
-    mov   ecx, $F8             //counter cl = -8, counter ch = 0.
-    jz @WriteZero              //if value = 0 then WriteData.
-    mov   r9, $47ae147ae147ae15
-@SmallLoop:                    //Process the 16 least significant digits
-    shl   rsi, 8               //clear next byte in rsi
-    mov   rax, r8              //rax = value mod 10 000
-    mov   r10, r8              //r10 = value mod 10 000
-    mul   r9                   //divide by 100 using multiplication by reciprocal
-    sub   r10, rdx             //... handle div by reciprocal
-    shr   r10, 1               //...
-    add   rdx, r10             //...
-    shr   rdx, 6               //...
-    imul  r11, rdx, -100       //...
-    add   r8, r11              //r8 = value mod 100
-    movzx r8d, r8b             //r8 = byte(r8)
-    or    rsi, r8              //rsi[0] = value mod 100
-    mov   r8, rdx              //a = a div 100
-    cmp   rdx, 1               //CF = 1 if rdx = 0
-    inc   cl                   //ZF = 1 if ecx = 0
-    ja  @SmallLoop            //until done
-    test  r8, r8
-    je   @WriteData
-    mov   r9, $47ae147ae147ae15
-    mov   ch,2                 //always process 4 digits if big number
-@bigloop:                      //process the 8 most significant bits
-    shl   rdi, 8               //clear next byte in rdi
-    mov   rax, r8              //
-    mov   r10, r8
-    mul   r9                   //rax:rdx = value div 100
-    sub   r10, rdx             //... handle multiplication by reciprocal
-    shr   r10, 1               //... handle multiplication by reciprocal
-    add   rdx, r10             //...
-    shr   rdx, 6               //...
-    imul  r11, rdx, -100       //... Mod by reciprocal
-    add   r8, r11              //r8 = value mod 100
-    movzx r8d, r8b             //r8 = byte(r8)
-    or    rdi, r8              //rdi[0] = byte(value mod 100)
-    mov   r8, rdx
-    dec   ch                   //always process 4 digits.
-    jnz    @BigLoop            //... until done with big numbers
-@WriteData:
-    pop   r11                  //restore data
-    mov   r9,r11               //save r11 (to deduce the length later)
-    add   cl,8                 //cl = number of low digit-pairs
-    movzx eax,cl
-    shl   cl,3                 //cl = cl * 8
-    mov   r8,rsi               //save MSB for later to test for leading zero.
-    ror   rsi,cl               //align rsi if there are fewer than 8 digit pairs
-    lea   r10,[rip+TwoDigitLookup]  //get the lookup table
-    lea   r11,[r11+44-6+4]       //go to end of buffer
-@SmallWriteLoop:
-    lea   r11,[r11-4]          //update r11
-    rol   rsi,8                //sil = LSB
-    movzx edx,sil              //edx = 2 digits to process
-    mov   edx,[r10+rdx*4]      //lookup 2 digits
-    dec   eax
-    mov   [r11],edx            //write the digit to string
-    jnz @SmallWriteLoop
-    test  edi,edi              //are there high digits to write?
-    jz @Done
-    mov   rdx,rdi
-    lea   r11,[r11-4]
-@BigWriteLoop:
-    movzx edi,dh               //Get digit-pair 8
-    movzx esi,dl               //Get digit-pair 9
-    mov edx,[r10+rdi*4]        //lookup 2 digits
-    mov r8,rsi                 //digit-pair 9 feeds leading zero indicator.
-    mov [r11],edx              //write digit to string
-    mov edx,[r10+rsi*4]
-    xor r10,r10
-    cmp esi,1                  //CF=1 if digit-pair 9 = 0.
-    cmovc r8,rdi               //r8 = leading zero indicator
-    adc r10,0                  //r10 = 1 if digit-pair 9 = 0
-    mov [r11-4],edx            //write data regardless
-    lea r11,[r11+r10*4-4]      //only update r11 if there was something to write
-@Done:
-    xor   eax,eax
-    cmp   r8b,10               //do we have a leading zero?
-    adc   eax,0                //rax =1 if there is.
-    lea   r11,[r11+rax*2]
-    pop   r8                   //Get the sign
-    xor   eax,eax
-    mov   edx,$002D            //edx = #00+'-'
-    lea   rcx,[r11-2]          //return address if negative
-    mov   [rcx],dx             //write the sign (will fall out of scope if not relevant).
-    test  r8,r8                //
-    mov   rax,r11              //return start of number
-    cmovs rax,rcx              //or start of '-' if sign
-    sub   r9,rax
-    add   r9,44-2
-    shr   r9,1
-    pop   rsi                  //clean up.
-    pop   rdi
-    mov   [rax-4],r9d          //write the length
-    ret
-@WriteZero:
-    mov   rcx,$003000000001FFFF//----> ref count = negative
-    ///////////||||++++++++
-    ///        ||||-------->length = 1
-    ///        ====> data = '0'
-    mov   [rdx+44-10],rcx
-    lea   rax,[rdx+44-2-2]
-    add   rsp,16
-    pop   rsi
-    pop   rdi
+        push      rcx
+        mov       r8,rcx
+        neg       rcx
+        cmovs     rcx,r8
+        lea       r11, [rdx+24]
+        push      r11   //save the end of the data
+        lea       r10, [rip+TwoDigitLookupAnsi]
+        //mov       byte ptr [rdx+60], 0
+        cmp       rcx, 100
+        jb        @tail
+        mov       r8, $47ae147ae147ae15
+@loop:
+        mov       rax, rcx
+        mov       r9d, ecx
+        mul       r8
+        sub       rcx, rdx
+        shr       rcx, 1
+        add       rdx, rcx
+        mov       rcx, rdx
+        shr       rcx, 6
+        imul      rax, rcx, -100
+        add       r9,  rax
+        movzx     edx, word ptr [r10+r9*2]
+        mov       [r11], dx
+        sub       r11, 2
+        cmp       rcx, 100
+        jae       @loop
+@tail:
+        movzx     eax, word ptr [r10+rcx*2]
+        mov       edx,$2d   //'-'
+        mov       [r11], ax
+        xor       eax, eax
+        cmp       ecx, 10
+        pop       r10
+        pop       rcx
+        setb      al
+        add       r10, 4
+        shl       rcx, 1     //sign flag to carry flag
+        mov       [r11+rax-1],dl   //put the '-', just in case
+        sbb       rax,0      //include the '-' if applicable
+        lea       rax, [r11+rax]
+        sub       r10,rax
+        mov       [rax-4],r10d
+        ret
+end;
+{$endif}
+
+{$ifdef cpux64}
+/// <summary>
+///  Convert value into a string.
+///  Negative values will have a '-' in front.
+///  Returns the first char of the string.
+///  At Result -4 a length encoding will be stored.
+/// </summary>
+function _IntToStr(const Value: Int64; var Dump: TCharStorage): PChar; overload;
+//rcx = value
+//rdx = dump
+//rax = length
+asm
+        push      rcx
+        mov       r8,rcx
+        neg       rcx
+        cmovs     rcx,r8
+        lea       r11, [rdx+52]
+        push      r11   //save the end of the data
+        lea       r10, [rip+TwoDigitLookup]
+        //mov       word ptr [rdx+60], 0
+        cmp       rcx, 100
+        jb        @tail
+        mov       r8, $47ae147ae147ae15
+@loop:
+        mov       rax, rcx
+        mov       r9d, ecx
+        mul       r8
+        sub       rcx, rdx
+        shr       rcx, 1
+        add       rdx, rcx
+        mov       rcx, rdx
+        shr       rcx, 6
+        imul      rax, rcx, -100
+        add       r9,  rax
+        mov       eax, [r10+r9*4]
+        mov       [r11], eax
+        sub       r11, 4
+        cmp       rcx, 100
+        jae       @loop
+@tail:
+        mov       eax, [r10+rcx*4]
+        mov       edx,$2d   //'-'
+        mov       [r11], eax
+        xor       eax, eax
+        cmp       ecx, 10
+        pop       r10
+        pop       rcx
+        setb      al
+        add       r10, 4
+        shl       rcx, 1     //sign flag to carry flag
+        mov       [r11+rax*2-2],dx   //put the '-', just in case
+        sbb       rax,0      //include the '-' if applicable
+        lea       rax, [r11+rax*2]
+        sub       r10,rax
+        mov       [rax-4],r10d
+        ret
 end;
 {$endif}
 
@@ -621,9 +626,9 @@ end;
 function TStringBuilder.Append(const Value: Integer): TStringBuilder;
 {$ifdef cpux64}
 var
+  Storage: TCharStorage;
   P: PChar;
   L: integer;
-  Storage: TCharStorage;
 begin
   P:= _IntToStr(Value, Storage);
   L:= PInteger(P)[-1];
@@ -1132,7 +1137,7 @@ begin
       Length := Length + SizeChange;
   end;
 end;
-
+//
 //var
 //  cs: TCharStorage;
 //  p: PChar;
@@ -1143,23 +1148,29 @@ end;
 //i,j: integer;
 //
 //const
-//  TestCount = 1000 * 1000 * 100;
+//  TestCount:int64 = 1000 * 1000 * 100;
 //
 //
 //initialization
-//  for j:= TestCount to TestCount+10 do begin
-//  LTick := TThread.GetTickCount;
-//  for i := 1 to TestCount do
-//  begin
-//    _IntToStr(j, cs);
+//
+//for j:= TestCount to TestCount + 10 do begin
+//  LTick:= TThread.GetTickCount;
+//  for I:= 1 to TestCount do begin
+//    _IntToStr(-j, cs);
 //  end;
 //  Writeln('IntToStrFast: ', TThread.GetTickCount - LTick, 'ms');
 //
-//  LTick := TThread.GetTickCount;
-//  for i := 1 to TestCount do
-//  begin
-//    IntToStr(j);
+////  LTick:= TThread.GetTickCount;
+////  for I:= 1 to TestCount do begin
+////    _IntToStr(j, cs);
+////  end;
+////  Writeln('UIntToStr fast: ', TThread.GetTickCount - LTick, 'ms');
+//
+//  LTick:= TThread.GetTickCount;
+//  for I:= 1 to TestCount do begin
+//    IntToStr(-j);
 //  end;
 //  Writeln('IntToStr system: ', TThread.GetTickCount - LTick, 'ms');
-//  end;
+//end;
+
 end.
