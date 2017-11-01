@@ -1266,7 +1266,7 @@ end;
 
 initialization
 
- Timings;
+// Timings;
 
 
 //for j:= TestCount to TestCount + 10 do begin
