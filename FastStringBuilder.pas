@@ -13,9 +13,7 @@ type
     procedure SetCapacity(Value: NativeUInt);
     function GetChars(Index: NativeUInt): Char;
     procedure SetChars(Index: NativeUInt; Value: Char);
-    //function GetLength: Integer; inline;
     procedure SetLength(Value: NativeUint); inline;
-    //procedure ExpandCapacity(NewLength: NativeUInt);
     procedure ReduceCapacity; inline;
     procedure CheckBounds(Index: NativeUint); inline;
     function _Replace(Index: NativeUint; const Old, New: string): Boolean;
@@ -265,7 +263,7 @@ asm
   ret
 end;
 
-function _IntToStrInt64(const Value: Int64; var Dump: TCharStorage): PChar; overload;
+function _UIntToStr(const Value: UInt64; var Dump: TCharStorage): PChar; overload;
 asm
   .noframe
   //push      0               //Save positive sign
@@ -276,7 +274,7 @@ asm
   cmp       rcx, 100        //process two digits at a time
   jb        @tail           //only two digits, goto tail.
   mov       r8, $47ae147ae147ae15  //division using multiplication by reciprocal
-  db $0F, $1F, $00
+  db $0F, $1F, $00          //nop 3
 @loop:
   mov       rax, rcx
   mov       r9d, ecx
@@ -351,13 +349,13 @@ var
   L: integer;
   Storage: TCharStorage;
 begin
-  P:= _IntToStrInt64(Value, Storage);
+  P:= _UIntToStr(Value, Storage);
   L:= PInteger(P)[-1];
   Result:= _Append(P, L);
 end;
 {$else}
 begin
-  Result:= Append(IntToStr(Value));
+  Result:= Append(UIntToStr(Value));
 end;
 {$endif}
 
@@ -378,13 +376,13 @@ var
   L: integer;
   Storage: TCharStorage;
 begin
-  P:= _IntToStr(Value, Storage);
+  P:= _UIntToStr(Value, Storage);
   L:= PInteger(P)[-1];
   Result:= _Append(P, L);
 end;
 {$else}
 begin
-  Result:= Append(IntToStr(Value));
+  Result:= Append(UIntToStr(Value));
 end;
 {$endif}
 
@@ -449,13 +447,13 @@ var
   L: integer;
   Storage: TCharStorage;
 begin
-  P:= _IntToStr(Value, Storage);
+  P:= _UIntToStr(Value, Storage);
   L:= PInteger(P)[-1];
   Result:= _Append(P, L);
 end;
 {$else}
 begin
-  Result:= Append(IntToStr(Value));
+  Result:= Append(UIntToStr(Value));
 end;
 {$endif}
 
@@ -619,13 +617,13 @@ var
   L: integer;
   Storage: TCharStorage;
 begin
-  P:= _IntToStr(Value, Storage);
+  P:= _UIntToStr(Value, Storage);
   L:= PInteger(P)[-1];
   Result:= _Append(P, L);
 end;
 {$else}
 begin
-  Result:= Append(IntToStr(Value));
+  Result:= Append(UIntToStr(Value));
 end;
 {$endif}
 
@@ -1202,7 +1200,7 @@ end;
 //
 //  LTick:= TThread.GetTickCount;
 //  for I:= 1 to TestCount do begin
-//    IntToStr(uint64(-j));
+//    UIntToStr(uint64(-j));   
 //  end;
 //  Writeln('IntToStr system: ', TThread.GetTickCount - LTick, 'ms');
 //end;
