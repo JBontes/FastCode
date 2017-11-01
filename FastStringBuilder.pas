@@ -151,7 +151,7 @@ type
 ///  Returns the first char of the string.
 ///  At Result -4 a length encoding will be stored.
 /// </summary>
-function _IntToStr(const Value: Int64; var Dump: TAnsiCharStorage): PAnsiChar; overload;
+function _IntToStrAnsi(const Value: Int64; var Dump: TAnsiCharStorage): PAnsiChar; overload;
 //rcx = value
 //rdx = dump
 //rax = length
@@ -205,6 +205,7 @@ end;
 {$endif}
 
 {$ifdef cpux64}
+
 /// <summary>
 ///  Convert value into a string.
 ///  Negative values will have a '-' in front.
@@ -217,17 +218,18 @@ function _IntToStr(const Value: Int64; var Dump: TCharStorage): PChar; overload;
 //rax = length
 asm
   .noframe
-  push      rcx
-  mov       r8,rcx
-  neg       rcx
-  cmovs     rcx,r8          //Value = abs(value)
+  push      rcx            //1
+  mov       r8,rcx         //3+1=4
+  neg       rcx            //4+3=7
+  cmovs     rcx,r8         //7+4=11      //Value = abs(value)
+@@IntToStrNoSign:
   lea       r11, [rdx+26*2]
   push      r11             //save the end of the data for length calculations later
   lea       r10, [rip+TwoDigitLookup]
-  //mov       word ptr [rdx+60], 0  //no need, we pass the length explicitly
   cmp       rcx, 100        //process two digits at a time
   jb        @tail           //only two digits, goto tail.
   mov       r8, $47ae147ae147ae15  //division using multiplication by reciprocal
+  db $0F, $1F, $84, $00, $00, $00, $00, $00  //nop 8
 @loop:
   mov       rax, rcx
   mov       r9d, ecx
@@ -238,7 +240,7 @@ asm
   mov       rcx, rdx
   shr       rcx, 6
   imul      rax, rcx, -100  //i = remainder mod 100
-  add       r9,  rax
+  add       r9d,  eax
   mov       eax, [r10+r9*4] //digits = lookup[i]
   mov       [r11], eax      //add to digits to the string
   sub       r11, 4
@@ -246,11 +248,11 @@ asm
   jae       @loop           //... until remainder < 100
 @tail:
   mov       eax,[r10+rcx*4] //lookup 2 digits
+  pop       r10
   mov       edx,$2d         //sign = '-'
   mov       [r11], eax      //write 2 digits
   xor       eax, eax
   cmp       ecx, 10         //do we have a leading zero?
-  pop       r10
   pop       rcx
   setb      al              //yes, add one
   add       r10, 4          //correct starting pos
@@ -262,7 +264,55 @@ asm
   mov       [rax-4],r10d    //write the length before the string
   ret
 end;
+
+function _IntToStrInt64(const Value: Int64; var Dump: TCharStorage): PChar; overload;
+asm
+  .noframe
+  //push      0               //Save positive sign
+@@IntToStrNoSign:
+  lea       r11, [rdx+26*2]
+  push      r11             //save the end of the data for length calculations later
+  lea       r10, [rip+TwoDigitLookup]
+  cmp       rcx, 100        //process two digits at a time
+  jb        @tail           //only two digits, goto tail.
+  mov       r8, $47ae147ae147ae15  //division using multiplication by reciprocal
+  db $0F, $1F, $00
+@loop:
+  mov       rax, rcx
+  mov       r9d, ecx
+  mul       r8
+  sub       rcx, rdx
+  shr       rcx, 1
+  add       rdx, rcx
+  mov       rcx, rdx
+  shr       rcx, 6
+  imul      rax, rcx, -100  //i = remainder mod 100
+  add       r9d,  eax
+  mov       eax, [r10+r9*4] //digits = lookup[i]
+  mov       [r11], eax      //add to digits to the string
+  sub       r11, 4
+  cmp       rcx, 100        //repeat ...
+  jae       @loop           //... until remainder < 100
+@tail:
+  mov       eax,[r10+rcx*4] //lookup 2 digits
+  pop       r10
+  //mov       edx,$2d         //sign = '-'
+  mov       [r11], eax      //write 2 digits
+  xor       eax, eax
+  cmp       ecx, 10         //do we have a leading zero?
+  //pop       rcx
+  setb      al              //yes, add one
+  add       r10, 4          //correct starting pos
+  //shl       rcx, 1          //rcx = 1 if number was negative
+  //mov       [r11+rax*2-2],dx//put the '-', just in case
+  //sbb       rax,0           //correct the start pos, if we have a '-' in front
+  lea       rax, [r11+rax*2]//return the start of the string
+  sub       r10,rax         //r10 = length
+  mov       [rax-4],r10d    //write the length before the string
+  ret
+end;
 {$endif}
+
 
 {$pointermath on}
 
@@ -295,22 +345,21 @@ begin
 end;
 
 function TStringBuilder.Append(const Value: UInt64): TStringBuilder;
-////_IntToStr does not handle UInt64
-//{$ifdef CPUx64}
-//var
-//  P: PChar;
-//  L: integer;
-//  Storage: TCharStorage;
-//begin
-//  P:= _IntToStr(Value, Storage);
-//  L:= PInteger(P)[-1];
-//  Result:= _Append(P, L);
-//end;
-//{$else}
+{$ifdef CPUx64}
+var
+  P: PChar;
+  L: integer;
+  Storage: TCharStorage;
+begin
+  P:= _IntToStrInt64(Value, Storage);
+  L:= PInteger(P)[-1];
+  Result:= _Append(P, L);
+end;
+{$else}
 begin
   Result:= Append(IntToStr(Value));
 end;
-//{$endif}
+{$endif}
 
 function TStringBuilder.Append(const Value: TCharArray): TStringBuilder;
 begin
@@ -1122,7 +1171,7 @@ begin
       Length := Length + SizeChange;
   end;
 end;
-//
+
 //var
 //  cs: TCharStorage;
 //  p: PChar;
@@ -1141,19 +1190,19 @@ end;
 //for j:= TestCount to TestCount + 10 do begin
 //  LTick:= TThread.GetTickCount;
 //  for I:= 1 to TestCount do begin
-//    _IntToStr(-j, cs);
+//    _IntToStrInt64(-j, cs);      //takes longer because it produces a much longer string.
 //  end;
-//  Writeln('IntToStrFast: ', TThread.GetTickCount - LTick, 'ms');
-//
-////  LTick:= TThread.GetTickCount;
-////  for I:= 1 to TestCount do begin
-////    _IntToStr(j, cs);
-////  end;
-////  Writeln('UIntToStr fast: ', TThread.GetTickCount - LTick, 'ms');
+//  Writeln('IntToStr64: ', TThread.GetTickCount - LTick, 'ms');
 //
 //  LTick:= TThread.GetTickCount;
 //  for I:= 1 to TestCount do begin
-//    IntToStr(-j);
+//    _IntToStr(j, cs);
+//  end;
+//  Writeln('IntToStr fast: ', TThread.GetTickCount - LTick, 'ms');
+//
+//  LTick:= TThread.GetTickCount;
+//  for I:= 1 to TestCount do begin
+//    IntToStr(uint64(-j));
 //  end;
 //  Writeln('IntToStr system: ', TThread.GetTickCount - LTick, 'ms');
 //end;
