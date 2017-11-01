@@ -1259,33 +1259,34 @@ end;
 //  end;
 //  Assert(S <> '');
 //  Writeln('String: ',TThread.GetTickCount- LTick, 'ms');
-//  ReadLn;
+//  SSB.Free;
+//  FSB.Free;
 //  ReadLn;
 //end;
+
+initialization
+
+ Timings;
+
+
+//for j:= TestCount to TestCount + 10 do begin
+//  LTick:= TThread.GetTickCount;
+//  for I:= 1 to TestCount do begin
+//    _IntToStrInt64(-j, cs);      //takes longer because it produces a much longer string.
+//  end;
+//  Writeln('IntToStr64: ', TThread.GetTickCount - LTick, 'ms');
 //
-//initialization
+//  LTick:= TThread.GetTickCount;
+//  for I:= 1 to TestCount do begin
+//    _IntToStr(j, cs);
+//  end;
+//  Writeln('IntToStr fast: ', TThread.GetTickCount - LTick, 'ms');
 //
-// Timings;
-//
-//
-////for j:= TestCount to TestCount + 10 do begin
-////  LTick:= TThread.GetTickCount;
-////  for I:= 1 to TestCount do begin
-////    _IntToStrInt64(-j, cs);      //takes longer because it produces a much longer string.
-////  end;
-////  Writeln('IntToStr64: ', TThread.GetTickCount - LTick, 'ms');
-////
-////  LTick:= TThread.GetTickCount;
-////  for I:= 1 to TestCount do begin
-////    _IntToStr(j, cs);
-////  end;
-////  Writeln('IntToStr fast: ', TThread.GetTickCount - LTick, 'ms');
-////
-////  LTick:= TThread.GetTickCount;
-////  for I:= 1 to TestCount do begin
-////    UIntToStr(uint64(-j));
-////  end;
-////  Writeln('IntToStr system: ', TThread.GetTickCount - LTick, 'ms');
-////end;
+//  LTick:= TThread.GetTickCount;
+//  for I:= 1 to TestCount do begin
+//    UIntToStr(uint64(-j));
+//  end;
+//  Writeln('IntToStr system: ', TThread.GetTickCount - LTick, 'ms');
+//end;
 
 end.
