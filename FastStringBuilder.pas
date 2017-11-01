@@ -9,7 +9,7 @@ type
   private const
     MALLOC_SIZE = 10 * 1024; // 10KB
   private
-    procedure ExpandCapacity(const AdditionalSize: Integer); inline;
+    procedure ExpandCapacity(const AdditionalSize: Integer);
     procedure SetCapacity(Value: NativeUInt);
     function GetChars(Index: NativeUInt): Char;
     procedure SetChars(Index: NativeUInt; Value: Char);
@@ -107,7 +107,7 @@ type
 implementation
 
 uses
-  System.SysConst, System.RTLConsts, WinAPI.Windows, system.classes;
+  System.SysConst, System.RTLConsts, WinAPI.Windows, System.classes, System.Diagnostics;
 
 const
   /// fast lookup table for converting any decimal number from
@@ -259,6 +259,7 @@ asm
   sbb       rax,0           //correct the start pos, if we have a '-' in front
   lea       rax, [r11+rax*2]//return the start of the string
   sub       r10,rax         //r10 = length
+  shr       r10,1           //pass length in chars
   mov       [rax-4],r10d    //write the length before the string
   ret
 end;
@@ -306,6 +307,7 @@ asm
   //sbb       rax,0           //correct the start pos, if we have a '-' in front
   lea       rax, [r11+rax*2]//return the start of the string
   sub       r10,rax         //r10 = length
+  shr       r10,1           //pass length in chars
   mov       [rax-4],r10d    //write the length before the string
   ret
 end;
@@ -314,9 +316,15 @@ end;
 
 {$pointermath on}
 
+function Min(a,b: NativeUInt): NativeUInt; overload; inline;
+begin
+  Result:= a xor ((a xor b) and -integer(a > b));
+end;
+
 procedure TStringBuilder.ExpandCapacity(const AdditionalSize: Integer);
 begin
-  FCapacity := FLength + AdditionalSize + MALLOC_SIZE;
+  FCapacity:= Min(FCapacity, MALLOC_SIZE);
+  FCapacity := ((FLength + AdditionalSize) * 4) div 2;
   System.SetLength(FData, FCapacity);
 end;
 
@@ -1171,38 +1179,113 @@ begin
 end;
 
 //var
-//  cs: TCharStorage;
-//  p: PChar;
+//  SSB: SysUtils.TStringBuilder;
+//  FSB: TStringBuilder;
 //  S: string;
-//  a: int64;
-//
-//LTick: int64;
-//i,j: integer;
+//  LTick: cardinal;
 //
 //const
-//  TestCount:int64 = 1000 * 1000 * 100;
+//  TestCount = 100 * 1000 * 100;
 //
+//
+//procedure Timings;
+//var
+//  Test: string;
+//  C: Char;
+//  i,j: integer;
+//
+//begin
+//  j:= 1457454;
+//  Test:= 'appleappleapple';
+//  SSB:= SysUtils.TStringBuilder.Create;
+//  FSB:= TStringBuilder.Create;
+//
+//  LTick:= TThread.GetTickCount;
+//  for i:= 0 to TestCount do begin
+//    SSB.Append(Test);
+//  end;
+//
+//  WriteLn('Standard SB: ',TThread.GetTickCount- LTick, 'ms');
+//
+//  LTick:= TThread.GetTickCount;
+//  for i:= 0 to TestCount do begin
+//    FSB.Append(Test);
+//  end;
+//  Writeln('Fast SB: ',TThread.GetTickCount- LTick, 'ms');
+//
+//  LTick:= TThread.GetTickCount;
+//  for i:= 0 to TestCount do begin
+//    S:= S + Test;
+//  end;
+//  Assert(S <> '');
+//  Writeln('string: ',TThread.GetTickCount- LTick, 'ms');
+//
+//  WriteLn('Char');
+//  LTick:= TThread.GetTickCount;
+//  for i:= 0 to TestCount do begin
+//    SSB.Append(C);
+//  end;
+//  Writeln('Standard SB: ',TThread.GetTickCount- LTick, 'ms');
+//
+//  LTick:= TThread.GetTickCount;
+//  for i:= 0 to TestCount do begin
+//    FSB.Append(C);
+//  end;
+//  Writeln('Fast SB: ',TThread.GetTickCount- LTick, 'ms');
+//
+//  LTick:= TThread.GetTickCount;
+//  for i:= 0 to TestCount do begin
+//    S:= S + C;
+//  end;
+//  Assert(S <> '');
+//  Writeln('String: ',TThread.GetTickCount- LTick, 'ms');
+//
+//  WriteLn('Integer');
+//  LTick:= TThread.GetTickCount;
+//  for i:= 0 to TestCount do begin
+//    SSB.Append(i);
+//  end;
+//  Writeln('Standard SB: ',TThread.GetTickCount- LTick, 'ms');
+//
+//  LTick:= TThread.GetTickCount;
+//  for i:= 0 to TestCount do begin
+//    FSB.Append(i);
+//  end;
+//  Writeln('Fast SB: ',TThread.GetTickCount- LTick, 'ms');
+//
+//  LTick:= TThread.GetTickCount;
+//  for i:= 0 to TestCount do begin
+//    S:= S + i.ToString;
+//  end;
+//  Assert(S <> '');
+//  Writeln('String: ',TThread.GetTickCount- LTick, 'ms');
+//  ReadLn;
+//  ReadLn;
+//end;
 //
 //initialization
 //
-//for j:= TestCount to TestCount + 10 do begin
-//  LTick:= TThread.GetTickCount;
-//  for I:= 1 to TestCount do begin
-//    _IntToStrInt64(-j, cs);      //takes longer because it produces a much longer string.
-//  end;
-//  Writeln('IntToStr64: ', TThread.GetTickCount - LTick, 'ms');
+// Timings;
 //
-//  LTick:= TThread.GetTickCount;
-//  for I:= 1 to TestCount do begin
-//    _IntToStr(j, cs);
-//  end;
-//  Writeln('IntToStr fast: ', TThread.GetTickCount - LTick, 'ms');
 //
-//  LTick:= TThread.GetTickCount;
-//  for I:= 1 to TestCount do begin
-//    UIntToStr(uint64(-j));   
-//  end;
-//  Writeln('IntToStr system: ', TThread.GetTickCount - LTick, 'ms');
-//end;
+////for j:= TestCount to TestCount + 10 do begin
+////  LTick:= TThread.GetTickCount;
+////  for I:= 1 to TestCount do begin
+////    _IntToStrInt64(-j, cs);      //takes longer because it produces a much longer string.
+////  end;
+////  Writeln('IntToStr64: ', TThread.GetTickCount - LTick, 'ms');
+////
+////  LTick:= TThread.GetTickCount;
+////  for I:= 1 to TestCount do begin
+////    _IntToStr(j, cs);
+////  end;
+////  Writeln('IntToStr fast: ', TThread.GetTickCount - LTick, 'ms');
+////
+////  LTick:= TThread.GetTickCount;
+////  for I:= 1 to TestCount do begin
+////    UIntToStr(uint64(-j));
+////  end;
+////  Writeln('IntToStr system: ', TThread.GetTickCount - LTick, 'ms');
+////end;
 
 end.
