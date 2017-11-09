@@ -882,7 +882,7 @@ begin
     raise ERangeError.CreateResFmt(@SListIndexError, [Index]);
   L:= System.Length(Value);
   Length := Length + L;
-  Move(pointer(FData[Index])^, FData[Index + L], (Length - L - Index) * SizeOf(Char));
+  Move(FData[Index], FData[Index + L], (Length - L - Index) * SizeOf(Char));
   Move(pointer(Value)^, FData[Index], L * SizeOf(Char));
   Result := Self;
 end;
@@ -951,8 +951,7 @@ begin
   Result:= Insert(Index, BoolToStr(Value, True));
 end;
 
-function TStringBuilder.Insert(Index: NativeUInt; const Value: string;
-  Count: NativeUInt): TStringBuilder;
+function TStringBuilder.Insert(Index: NativeUInt; const Value: string; Count: NativeUInt): TStringBuilder;
 var
   I: Integer;
   S: string;
