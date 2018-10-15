@@ -12,7 +12,7 @@ function MinValue(const Data: array of Extended): Extended; overload;
 function MinIntValue(const Data: array of Integer): Integer;
 
 function Min(const A, B: Integer): Integer; overload; {$ifdef PurePascal}inline;{$endif}
-function Min(const A, B: Int64): Int64; overload; inline;
+function Min(const A, B: Int64): Int64; overload; {$if defined(PurePascal)}inline;{$endif}
 function Min(const A, B: UInt64): UInt64; overload; inline;
 function Min(const A, B: Single): Single; overload; inline;
 function Min(const A, B: Double): Double; overload; inline;
@@ -35,8 +35,11 @@ function Max(const A, B: Extended): Extended; overload; inline;
 
 implementation
 
+uses Math;
+
 { MinValue: Returns the smallest signed value in the data array (MIN) }
 function MinValue(const Data: array of Single): Single; overload;
+{$ifdef cpux64}
 asm
   or    rcx,rcx
   jz @error
@@ -55,12 +58,13 @@ asm
   minps  xmm0,xmm1
   shufps xmm1,xmm1,2+(3 shl 2)+(0 shl 4)+(1 shl 6)
   minps  xmm0,xmm1
-  movss  eax,xmm0
+  movd  eax,xmm0
 @tail:
-
 @error:
-
-
+{$else}
+begin
+   Result:= Math.MinValue(Data)
+{$endif}
 end;
 
 function MinValue(const Data: array of Double): Double; overload;
@@ -101,17 +105,19 @@ asm
 end;
 {$endif}
 
-function Min(const A, B: Int64): Int64; overload; {$if defined(PurePascal)}
+function Min(const A, B: Int64): Int64; overload;
+{$if defined(PurePascal)}
 inline;
 begin
   Result:= ((a-b)*(a>b))+b;
 end;
-{$elseif defined(CPUX86)}
+{$else}
+{$if defined(CPUX86)}
 asm
-  sub a,b
+  sub eax,edx
   sbb ecx,ecx
-  and a,ecx
-  add a,b
+  and eax,ecx
+  add eax,edx
 end;
 {$else}
 asm
@@ -120,6 +126,7 @@ asm
   and rax,a    //RAX = 0 if a>b else RAX=(a-b)
   add rax,b    //rax = a-b+b = a if b>a else rax =0+b = b
 end;
+{$endif}
 {$endif}
 
 
@@ -202,7 +209,7 @@ end;
 
 
 //// func Abs(x float64) float64
-//TEXT 稟bs(SB),NOSPLIT,$0
+//TEXT 路Abs(SB),NOSPLIT,$0
 //	MOVQ   $(1<<63), BX
 //	MOVQ   BX, X0 // movsd $(-0.0), x0
 //	MOVSD  x+0(FP), X1
@@ -211,7 +218,7 @@ end;
 //	RET
 //
 //// func Frexp(f float64) (frac float64, exp int)
-//TEXT 稦rexp(SB),NOSPLIT,$0
+//TEXT 路Frexp(SB),NOSPLIT,$0
 //	FMOVD   f+0(FP), F0   // F0=f
 //	FXAM
 //	FSTSW   AX
@@ -234,7 +241,7 @@ end;
 //#define Big		0x4330000000000000 // 2**52
 //
 //// func Floor(x float64) float64
-//TEXT 稦loor(SB),NOSPLIT,$0
+//TEXT 路Floor(SB),NOSPLIT,$0
 //	MOVQ	x+0(FP), AX
 //	MOVQ	$~(1<<63), DX // sign bit mask
 //	ANDQ	AX,DX // DX = |x|
@@ -256,7 +263,7 @@ end;
 //	RET
 //
 //// func Ceil(x float64) float64
-//TEXT 稢eil(SB),NOSPLIT,$0
+//TEXT 路Ceil(SB),NOSPLIT,$0
 //	MOVQ	x+0(FP), AX
 //	MOVQ	$~(1<<63), DX // sign bit mask
 //	MOVQ	AX, BX // BX = copy of x
@@ -282,7 +289,7 @@ end;
 //	RET
 //
 //// func Trunc(x float64) float64
-//TEXT 稵runc(SB),NOSPLIT,$0
+//TEXT 路Trunc(SB),NOSPLIT,$0
 //	MOVQ	x+0(FP), AX
 //	MOVQ	$~(1<<63), DX // sign bit mask
 //	MOVQ	AX, BX // BX = copy of x
