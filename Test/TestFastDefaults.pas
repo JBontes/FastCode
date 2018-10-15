@@ -104,12 +104,24 @@ type
     //[TearDown]
     procedure TearDown;
     [Test]
+    [TestCase('Normal string1', '1,1')]
+    [TestCase('Normal string1', '1,2')]
+    [TestCase('Normal string1', 'a,c')]
     procedure TestString1(const L, R: TStr1);
     [Test]
+    [TestCase('Normal string2', '11,11')]
+    [TestCase('Normal string2', '11,21')]
+    [TestCase('Normal string2', 'a1,c1')]
     procedure TestString2(const L, R: TStr2);
     [Test]
+    [TestCase('Normal string3', '111,111')]
+    [TestCase('Normal string3', '111,211')]
+    [TestCase('Normal string3', 'a11,c11')]
     procedure TestString3(const L, R: TStr3);
     [Test]
+    [TestCase('Normal string255', 'gfdhfgfjgdjsfgjsdfgsdguiweyhfidbs,gfdhfgfjgdjsfgjsdfgsdguiweyhfidbs')]
+    [TestCase('Normal string255', '111,211')]
+    [TestCase('Normal string255', 'a11,c11')]
     procedure TestString255(const L, R: TStr255);
     [Test]
     procedure TestReal48;
